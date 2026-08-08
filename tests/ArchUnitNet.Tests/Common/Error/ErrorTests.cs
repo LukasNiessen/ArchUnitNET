@@ -1,4 +1,5 @@
 using ArchUnitNet.Common.Error;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.Error;
 
@@ -14,7 +15,7 @@ public class TechnicalErrorTests
         var error = new TechnicalError(message);
 
         // Assert
-        error.Message.Should().Be(message);
+        Assert.Equal(message, error.Message);
     }
 
     [Fact]
