@@ -1,0 +1,50 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.iml
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ReSharper
+.idea/
+*.sln.iml
+*.resharper
+*.resharper.user
+
+# NuGet
+.nuget/
+*.nupkg
+*.snupkg
+
+# Test Results
+TestResults/
+*.trx
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Local environment
+.env
+.env.local
+
+# IDE
+.DS_Store
+Thumbs.db
