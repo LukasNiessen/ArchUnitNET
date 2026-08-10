@@ -1,4 +1,5 @@
 using ArchUnitNet.Files;
+using ArchUnitNet.Slices;
 
 namespace ArchUnitNet.Presets;
 
@@ -90,27 +91,27 @@ public class LayeredArchitecturePreset
         return new Checkable[]
         {
             // UI should not depend on Data
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_uiPath)
                 .ShouldNot()
                 .DependOnFiles()
                 .InFolder(_dataPath),
 
             // Service should not depend on UI
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_servicePath)
                 .ShouldNot()
                 .DependOnFiles()
                 .InFolder(_uiPath),
 
             // No cycles allowed
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath("src/**")
                 .Should()
                 .HaveNoCycles(),
 
             // All layers should have no internal cycles
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_uiPath)
                 .Should()
                 .HaveNoCycles()
@@ -177,7 +178,7 @@ public class HexagonalArchitecturePreset
         return new Checkable[]
         {
             // Domain should not depend on anything
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_domainPath)
                 .ShouldNot()
                 .DependOnFiles()
@@ -186,14 +187,14 @@ public class HexagonalArchitecturePreset
                 .InFolder(_adaptersPath),
 
             // Adapters should depend on ports
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_adaptersPath)
                 .Should()
                 .DependOnFiles()
                 .InFolder(_portsPath),
 
             // No cycles allowed
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath("src/**")
                 .Should()
                 .HaveNoCycles()
@@ -243,13 +244,13 @@ public class FeatureIsolationPreset
         return new Checkable[]
         {
             // Features are isolated
-            ProjectSlices()
+            ArchUnit.ProjectSlices()
                 .DefinedBy(_featuresPath.Replace("**", "{Feature}/**"))
                 .Should()
                 .AdhereToDefinedSlices(),
 
             // No cycles
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_featuresPath)
                 .Should()
                 .HaveNoCycles()
@@ -306,7 +307,7 @@ public class PublicAPIPreset
         return new Checkable[]
         {
             // Cannot import from internal folders
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_featuresPath)
                 .ShouldNot()
                 .DependOnFiles()
@@ -347,7 +348,7 @@ public class MicroservicesPreset
         return new Checkable[]
         {
             // Services are isolated
-            ProjectSlices()
+            ArchUnit.ProjectSlices()
                 .DefinedBy(_servicesPath.Replace("**", "{Service}/**"))
                 .Should()
                 .AdhereToDefinedSlices()
@@ -394,28 +395,28 @@ public class CleanArchitecturePreset
         return new Checkable[]
         {
             // Entities don't depend on anything
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_entitiesPath)
                 .ShouldNot()
                 .DependOnFiles()
                 .InFolder(_useCasesPath),
 
             // UseCases depend on Entities only
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_useCasesPath)
                 .ShouldNot()
                 .DependOnFiles()
                 .InFolder(_controllersPath),
 
             // Controllers depend on UseCases
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_controllersPath)
                 .Should()
                 .DependOnFiles()
                 .InFolder(_useCasesPath),
 
             // No circular dependencies
-            ProjectFiles(_projectPath)
+            ArchUnit.ProjectFiles(_projectPath)
                 .InPath("src/**")
                 .Should()
                 .HaveNoCycles()
