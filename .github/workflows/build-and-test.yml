@@ -24,16 +24,16 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
 
+    - name: Clear NuGet cache
+      run: |
+        dotnet nuget locals all --clear
+
     - name: Restore dependencies
       run: |
-        echo "Working directory: $(pwd)"
-        echo "OS: ${{ matrix.os }}"
-        dotnet restore --verbosity normal
-        echo "Restore completed. Checking for assets files..."
-        find . -name "project.assets.json" -type f | head -20
+        dotnet restore ArchUnitNET.sln --verbosity minimal
 
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build ArchUnitNET.sln --configuration Release --no-restore
 
     - name: Run tests
       run: dotnet test --configuration Release --no-build --logger "console;verbosity=minimal" --collect:"XPlat Code Coverage"
