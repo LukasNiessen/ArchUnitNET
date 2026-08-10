@@ -29,6 +29,18 @@ public class FileConditionBuilder
         return InPath(pattern);
     }
 
+    public FileConditionBuilder ByName(string namePattern)
+    {
+        _fileMatcher = new PatternMatcher($"**/{namePattern}");
+        return this;
+    }
+
+    public FileConditionBuilder Named(string exactName)
+    {
+        _fileMatcher = new PatternMatcher($"**/{exactName}");
+        return this;
+    }
+
     public FilesShouldCondition Should()
     {
         if (_fileMatcher == null)
