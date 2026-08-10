@@ -35,7 +35,7 @@ public class LCOMCalculator
     }
 
     /// <summary>
-    /// LCOM96a (Chidamber & Kemerer variant): Counts method pairs sharing at least one field.
+    /// LCOM96a (Chidamber &amp; Kemerer variant): Counts method pairs sharing at least one field.
     /// Range: [0, 1]. Values closer to 0 = higher cohesion.
     /// </summary>
     public double CalculateLCOM96a()
@@ -78,7 +78,7 @@ public class LCOMCalculator
     }
 
     /// <summary>
-    /// LCOM1995 (Original Chidamber & Kemerer): Field usage based.
+    /// LCOM1995 (Original Chidamber &amp; Kemerer): Field usage based.
     /// High values indicate low cohesion.
     /// </summary>
     public double CalculateLCOM1995()

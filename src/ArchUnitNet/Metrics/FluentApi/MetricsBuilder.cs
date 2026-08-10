@@ -100,7 +100,7 @@ public class MethodMetricsBuilder
     }
 
     /// <summary>
-    /// Select LCOM1995 metric (original Chidamber & Kemerer).
+    /// Select LCOM1995 metric (original Chidamber &amp; Kemerer).
     /// </summary>
     public LCOMThresholdBuilder LCOM1995()
     {
