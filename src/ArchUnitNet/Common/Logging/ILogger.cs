@@ -45,14 +45,17 @@ public class NullLogger : ILogger
 /// <summary>
 /// Logger that writes to the console (stdout).
 /// Respects verbose mode for debug messages.
+/// Gracefully degrades on non-TTY environments (Linux CI/CD).
 /// </summary>
 public class ConsoleLogger : ILogger
 {
     private readonly bool _verbose;
+    private readonly bool _supportsColor;
 
     public ConsoleLogger(bool verbose = false)
     {
         _verbose = verbose;
+        _supportsColor = Console.IsOutputRedirected == false;
     }
 
     public void Info(string message)
@@ -62,28 +65,70 @@ public class ConsoleLogger : ILogger
 
     public void Warn(string message)
     {
-        var originalColor = Console.ForegroundColor;
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"[WARN] {message}");
-        Console.ForegroundColor = originalColor;
+        if (_supportsColor)
+        {
+            try
+            {
+                var originalColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[WARN] {message}");
+                Console.ForegroundColor = originalColor;
+            }
+            catch
+            {
+                Console.WriteLine($"[WARN] {message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[WARN] {message}");
+        }
     }
 
     public void Error(string message)
     {
-        var originalColor = Console.ForegroundColor;
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"[ERROR] {message}");
-        Console.ForegroundColor = originalColor;
+        if (_supportsColor)
+        {
+            try
+            {
+                var originalColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[ERROR] {message}");
+                Console.ForegroundColor = originalColor;
+            }
+            catch
+            {
+                Console.WriteLine($"[ERROR] {message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[ERROR] {message}");
+        }
     }
 
     public void Debug(string message)
     {
         if (_verbose)
         {
-            var originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine($"[DEBUG] {message}");
-            Console.ForegroundColor = originalColor;
+            if (_supportsColor)
+            {
+                try
+                {
+                    var originalColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Console.WriteLine($"[DEBUG] {message}");
+                    Console.ForegroundColor = originalColor;
+                }
+                catch
+                {
+                    Console.WriteLine($"[DEBUG] {message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG] {message}");
+            }
         }
     }
 }
