@@ -11,6 +11,7 @@ public class FileConditionBuilder
 {
     private readonly Graph _graph;
     private PatternMatcher? _fileMatcher;
+    private string _currentPattern = "";
 
     public FileConditionBuilder(Graph graph)
     {
@@ -20,6 +21,7 @@ public class FileConditionBuilder
     public FileConditionBuilder InPath(string pattern)
     {
         _fileMatcher = new PatternMatcher(pattern);
+        _currentPattern = pattern;
         return this;
     }
 
@@ -31,13 +33,15 @@ public class FileConditionBuilder
 
     public FileConditionBuilder ByName(string namePattern)
     {
-        _fileMatcher = new PatternMatcher($"**/{namePattern}");
+        _currentPattern = $"**/{namePattern}";
+        _fileMatcher = new PatternMatcher(_currentPattern);
         return this;
     }
 
     public FileConditionBuilder Named(string exactName)
     {
-        _fileMatcher = new PatternMatcher($"**/{exactName}");
+        _currentPattern = $"**/{exactName}";
+        _fileMatcher = new PatternMatcher(_currentPattern);
         return this;
     }
 
@@ -46,7 +50,7 @@ public class FileConditionBuilder
         if (_fileMatcher == null)
             throw new InvalidOperationException("Must call InPath() or InFolder() first");
 
-        return new FilesShouldCondition(_graph, _fileMatcher, negated: false);
+        return new FilesShouldCondition(_graph, _fileMatcher, negated: false, sourcePattern: _currentPattern);
     }
 
     public FilesShouldCondition ShouldNot()
@@ -54,6 +58,6 @@ public class FileConditionBuilder
         if (_fileMatcher == null)
             throw new InvalidOperationException("Must call InPath() or InFolder() first");
 
-        return new FilesShouldCondition(_graph, _fileMatcher, negated: true);
+        return new FilesShouldCondition(_graph, _fileMatcher, negated: true, sourcePattern: _currentPattern);
     }
 }

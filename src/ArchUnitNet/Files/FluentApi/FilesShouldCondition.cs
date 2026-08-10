@@ -12,17 +12,19 @@ public class FilesShouldCondition
     private readonly Graph _graph;
     private readonly PatternMatcher _fileMatcher;
     private readonly bool _negated;
+    private string _sourcePattern;
 
-    public FilesShouldCondition(Graph graph, PatternMatcher fileMatcher, bool negated)
+    public FilesShouldCondition(Graph graph, PatternMatcher fileMatcher, bool negated, string sourcePattern = "")
     {
         _graph = graph;
         _fileMatcher = fileMatcher;
         _negated = negated;
+        _sourcePattern = sourcePattern;
     }
 
     public FileDependencyCondition DependOnFiles()
     {
-        return new FileDependencyCondition(_graph, _fileMatcher, negated: _negated);
+        return new FileDependencyCondition(_graph, _fileMatcher, negated: _negated, sourcePattern: _sourcePattern);
     }
 
     public FileIndependenceCondition HaveNoCycles()

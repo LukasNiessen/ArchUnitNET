@@ -15,13 +15,15 @@ public class FileDependencyCondition : Checkable
 {
     private readonly Graph _graph;
     private readonly PatternMatcher _sourceMatcher;
+    private readonly string _sourcePattern;
     private readonly bool _negated;
     private PatternMatcher? _targetMatcher;
 
-    public FileDependencyCondition(Graph graph, PatternMatcher sourceMatcher, bool negated)
+    public FileDependencyCondition(Graph graph, PatternMatcher sourceMatcher, bool negated, string sourcePattern = "")
     {
         _graph = graph;
         _sourceMatcher = sourceMatcher;
+        _sourcePattern = sourcePattern;
         _negated = negated;
     }
 
@@ -42,16 +44,28 @@ public class FileDependencyCondition : Checkable
         if (_targetMatcher == null)
             throw new InvalidOperationException("Must call InPath() or InFolder() first");
 
+        options ??= new CheckOptions();
+
         var violations = new List<Violation>();
         var projectedEdges = ProjectEdges.GroupBySourceAndTarget(_graph);
 
-        foreach (var edge in projectedEdges)
-        {
-            bool sourceMatches = _sourceMatcher.Matches(edge.Source);
-            bool targetMatches = _targetMatcher.Matches(edge.Target);
+        // Empty-test guard: fail if no files match the pattern (unless explicitly allowed)
+        var matchingEdges = projectedEdges
+            .Where(e => _sourceMatcher.Matches(e.Source))
+            .ToList();
 
-            if (!sourceMatches)
-                continue;
+        if (matchingEdges.Count == 0 && !options.AllowEmptyTests)
+        {
+            violations.Add(new MatchingFilesViolation(
+                _sourcePattern,
+                $"No files matched pattern '{_sourcePattern}' - this is likely a typo. " +
+                "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            return await Task.FromResult(violations.AsReadOnly());
+        }
+
+        foreach (var edge in matchingEdges)
+        {
+            bool targetMatches = _targetMatcher.Matches(edge.Target);
 
             bool violates = targetMatches;
             if (_negated)
