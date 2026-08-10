@@ -77,3 +77,29 @@ indent_size = 2
 # XML files
 [*.xml]
 indent_size = 2
+
+# StyleCop Analyzer Configuration
+[*.cs]
+# SA1200 - Using directives should be inside namespace (allow global usings in C# 10+)
+dotnet_diagnostic.SA1200.severity = silent
+
+# SA1633 - File header (disable requirement)
+dotnet_diagnostic.SA1633.severity = silent
+
+# SA1402 - File may only contain a single type (disable for helper types)
+dotnet_diagnostic.SA1402.severity = silent
+
+# SA1649 - File name should match first type name (disable for multiple types)
+dotnet_diagnostic.SA1649.severity = silent
+
+# SA1009 - Closing parenthesis should not be preceded by space (disable)
+dotnet_diagnostic.SA1009.severity = silent
+
+# SA1513 - Closing brace should be followed by blank line
+dotnet_diagnostic.SA1513.severity = silent
+
+# SA1515 - Single-line comment should be preceded by blank line
+dotnet_diagnostic.SA1515.severity = silent
+
+# SA1570 - XML comment badly formed (disable)
+dotnet_diagnostic.SA1570.severity = silent
