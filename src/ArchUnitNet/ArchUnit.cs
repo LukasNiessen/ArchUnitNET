@@ -1,3 +1,5 @@
+using ArchUnitNet.Common.Extraction;
+using ArchUnitNet.Files.FluentApi;
 using ArchUnitNet.GraphReporting;
 using ArchUnitNet.Metrics.Extraction;
 using ArchUnitNet.Metrics.FluentApi;
@@ -13,6 +15,18 @@ namespace ArchUnitNet;
 /// </summary>
 public static class ArchUnit
 {
+    private static readonly DependencyExtractor _extractor = new();
+
+    /// <summary>
+    /// Create a file-based architecture rule.
+    /// Entry point for file dependency validation.
+    /// </summary>
+    public static FileConditionBuilder ProjectFiles(string projectPath)
+    {
+        var graph = _extractor.ExtractGraphAsync(projectPath).GetAwaiter().GetResult();
+        return new FileConditionBuilder(graph);
+    }
+
     /// <summary>
     /// Create a metrics-based architecture rule.
     /// Entry point for method cohesion, field usage, and complexity analysis.
@@ -35,7 +49,4 @@ public static class ArchUnit
     /// Entry point for graph reporting in multiple formats (Mermaid, DOT, D2, CSV, JSON, HTML).
     /// </summary>
     public static ProjectGraphBuilder ProjectGraph() => new ProjectGraphBuilder();
-
-    // Entry points will be added here as modules are implemented
-    // e.g., public static IFileConditionBuilder ProjectFiles(string? projectPath = null) => ...
 }

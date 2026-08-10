@@ -1,4 +1,6 @@
+using ArchUnitNet.Common.Assertion;
 using ArchUnitNet.Common.Extraction;
+using ArchUnitNet.Common.FluentApi;
 using ArchUnitNet.Slices.Projection;
 
 namespace ArchUnitNet.Slices.FluentApi;
@@ -132,7 +134,7 @@ public interface ISliceCondition
 /// <summary>
 /// Represents a condition where slices should adhere to defined architecture.
 /// </summary>
-public class AdhereToSlicesCondition : ISliceCondition
+public class AdhereToSlicesCondition : ISliceCondition, Checkable
 {
     private readonly string _slicePattern;
     private readonly IEnumerable<Edge>? _edges;
@@ -143,13 +145,17 @@ public class AdhereToSlicesCondition : ISliceCondition
         _edges = edges;
     }
 
-    // TODO: Implement CheckAsync() when integrated with dependency graph
+    public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
+    {
+        // TODO: Implement when integrated with dependency graph
+        return Array.Empty<Violation>();
+    }
 }
 
 /// <summary>
 /// Represents a dependency pattern condition between slices.
 /// </summary>
-public class DependencyPatternCondition : ISliceCondition
+public class DependencyPatternCondition : ISliceCondition, Checkable
 {
     private readonly string _slicePattern;
     private readonly IEnumerable<Edge>? _edges;
@@ -162,13 +168,17 @@ public class DependencyPatternCondition : ISliceCondition
         _dependencyPattern = dependencyPattern;
     }
 
-    // TODO: Implement CheckAsync() when integrated with dependency graph
+    public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
+    {
+        // TODO: Implement when integrated with dependency graph
+        return Array.Empty<Violation>();
+    }
 }
 
 /// <summary>
 /// Represents a no-cycles condition between slices.
 /// </summary>
-public class NoCyclicSlicesCondition : ISliceCondition
+public class NoCyclicSlicesCondition : ISliceCondition, Checkable
 {
     private readonly string _slicePattern;
     private readonly IEnumerable<Edge>? _edges;
@@ -179,5 +189,9 @@ public class NoCyclicSlicesCondition : ISliceCondition
         _edges = edges;
     }
 
-    // TODO: Implement CheckAsync() when integrated with dependency graph
+    public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
+    {
+        // TODO: Implement when integrated with dependency graph
+        return Array.Empty<Violation>();
+    }
 }

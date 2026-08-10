@@ -3,6 +3,7 @@ using System.Text;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using ArchUnitNet.Common.Assertion;
+using ArchUnitNet.Common.Error;
 
 namespace ArchUnitNet.Reporting;
 
@@ -130,11 +131,11 @@ public class ViolationReportExporter
                 var isError = violation is TechnicalError;
                 sb.AppendLine($"    <div class=\"violation {(isError ? "error" : "warning")}\">");
                 sb.AppendLine("      <div class=\"violation-header\">");
-                sb.AppendLine($"        <span class=\"violation-type\">{violation.ViolationType}</span>");
+                sb.AppendLine($"        <span class=\"violation-type\">{violation.GetType().Name}</span>");
                 sb.AppendLine("      </div>");
                 sb.AppendLine("      <div class=\"violation-details\">");
                 sb.AppendLine($"        <p><span class=\"label\">Type:</span> {violation.GetType().Name}</p>");
-                sb.AppendLine($"        <p><span class=\"label\">Message:</span> <code>{HtmlEncode(violation.ToString())}</code></p>");
+                sb.AppendLine($"        <p><span class=\"label\">Message:</span> <code>{HtmlEncode(violation.ToString() ?? "")}</code></p>");
                 sb.AppendLine("      </div>");
                 sb.AppendLine("    </div>");
             }
@@ -217,7 +218,7 @@ public class ViolationReportExporter
             violations = _violations.Select((v, i) => new
             {
                 id = i + 1,
-                type = v.ViolationType,
+                type = v.GetType().Name,
                 message = v.ToString(),
                 severity = v is TechnicalError ? "error" : "warning"
             }).ToArray()
@@ -250,7 +251,7 @@ public class ViolationReportExporter
             for (int i = 0; i < _violations.Count; i++)
             {
                 var violation = _violations[i];
-                sb.AppendLine($"[{i + 1}] {violation.ViolationType}");
+                sb.AppendLine($"[{i + 1}] {violation.GetType().Name}");
                 sb.AppendLine($"    {violation}");
                 sb.AppendLine();
             }

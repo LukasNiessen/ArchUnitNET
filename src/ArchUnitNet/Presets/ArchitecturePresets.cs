@@ -179,13 +179,18 @@ public class HexagonalArchitecturePreset
 
         return new Checkable[]
         {
-            // Domain should not depend on anything
+            // Domain should not depend on ports
             ArchUnit.ProjectFiles(_projectPath)
                 .InPath(_domainPath)
                 .ShouldNot()
                 .DependOnFiles()
-                .InFolder(_portsPath)
-                .And()
+                .InFolder(_portsPath),
+
+            // Domain should not depend on adapters
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath(_domainPath)
+                .ShouldNot()
+                .DependOnFiles()
                 .InFolder(_adaptersPath),
 
             // Adapters should depend on ports
@@ -378,7 +383,6 @@ public class CleanArchitecturePreset
     private string _entitiesPath = "src/Entities/**";
     private string _useCasesPath = "src/UseCases/**";
     private string _controllersPath = "src/Controllers/**";
-    private string _frameworksPath = "src/Frameworks/**";
 
     public CleanArchitecturePreset WithProjectPath(string projectPath)
     {

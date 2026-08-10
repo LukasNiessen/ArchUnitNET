@@ -1,3 +1,4 @@
+using ArchUnitNet.Common.Assertion;
 using ArchUnitNet.Presets;
 using Xunit;
 

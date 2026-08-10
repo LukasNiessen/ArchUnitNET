@@ -1,7 +1,22 @@
+using ArchUnitNet.Common.Assertion;
+using ArchUnitNet.Common.Util;
+using ArchUnitNet.Files.Assertion;
 using ArchUnitNet.Reporting;
 using Xunit;
 
 namespace ArchUnitNet.Tests.Reporting;
+
+public class TestViolation : Violation
+{
+    private readonly string _message;
+
+    public TestViolation(string message)
+    {
+        _message = message;
+    }
+
+    public override string ToString() => _message;
+}
 
 public class ViolationReportExporterTests : IDisposable
 {
@@ -16,9 +31,9 @@ public class ViolationReportExporterTests : IDisposable
         // Create test violations
         _testViolations = new List<Violation>
         {
-            new UserError("File A depends on File B unexpectedly"),
-            new UserError("Circular dependency: A → B → C → A"),
-            new TechnicalError("Failed to analyze project: Missing metadata")
+            new TestViolation("File A depends on File B unexpectedly"),
+            new TestViolation("Circular dependency: A → B → C → A"),
+            new ViolatingFileDependency("A.cs", "B.cs", ImportKind.Using, "Failed to analyze project: Missing metadata")
         };
     }
 
