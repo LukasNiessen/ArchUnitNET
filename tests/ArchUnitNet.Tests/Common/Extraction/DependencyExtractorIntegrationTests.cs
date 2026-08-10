@@ -61,13 +61,13 @@ public class DependencyExtractorIntegrationTests : IDisposable
         var graph = await _extractor.ExtractGraphAsync(csprojPath);
 
         // Assert
-        graph.Edges.Should().NotBeEmpty();
+        Assert.NotEmpty(graph.Edges);
 
         // Should have edges from UserController to System and MyApp.Services
         var controllerEdges = graph.Edges
             .Where(e => e.Source.Contains("UserController"))
             .ToList();
-        controllerEdges.Should().NotBeEmpty();
+        Assert.NotEmpty(controllerEdges);
     }
 
     [Fact]
@@ -104,10 +104,10 @@ public class DependencyExtractorIntegrationTests : IDisposable
         var internalEdges = graph.Edges.Where(e => !e.External).ToList();
 
         // System.* should be external
-        externalEdges.Should().Contain(e => e.Target.StartsWith("System"));
+        Assert.Contains(externalEdges, e => e.Target.StartsWith("System"));
 
         // MyApp.* should be internal
-        internalEdges.Should().Contain(e => e.Target.StartsWith("MyApp"));
+        Assert.Contains(internalEdges, e => e.Target.StartsWith("MyApp"));
     }
 
     [Fact]
@@ -137,9 +137,9 @@ public class DependencyExtractorIntegrationTests : IDisposable
         var graph = await _extractor.ExtractGraphAsync(csprojPath);
 
         // Assert
-        graph.Edges.Should().NotBeEmpty();
+        Assert.NotEmpty(graph.Edges);
         var kinds = graph.Edges.SelectMany(e => e.ImportKinds).Distinct().ToList();
-        kinds.Should().HaveCountGreaterThan(1); // Should have multiple import kinds
+        Assert.True(kinds.Count > 1); // Should have multiple import kinds
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class DependencyExtractorIntegrationTests : IDisposable
 
         // Assert
         var uniqueSources = graph.Edges.Select(e => e.Source).Distinct().Count();
-        uniqueSources.Should().Be(5);
+        Assert.Equal(5, uniqueSources);
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class DependencyExtractorIntegrationTests : IDisposable
         var graph2 = await _extractor.ExtractGraphAsync(csprojPath);
 
         // Assert
-        graph1.Should().Be(graph2); // Same object (cached)
+        Assert.Same(graph1, graph2); // Same object (cached)
     }
 
     private void CreateProjectStructure(string csprojContent, (string path, string content)[] files)

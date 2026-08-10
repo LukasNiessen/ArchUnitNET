@@ -1,5 +1,6 @@
 using ArchUnitNet.Common.Assertion;
 using ArchUnitNet.Common.FluentApi;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.FluentApi;
 
@@ -31,7 +32,7 @@ public class CheckableTests
         var violations = await checkable.CheckAsync();
 
         // Assert
-        violations.Should().BeEmpty();
+        Assert.Empty(violations);
     }
 
     [Fact]
@@ -45,8 +46,8 @@ public class CheckableTests
         var violations = await checkable.CheckAsync();
 
         // Assert
-        violations.Should().HaveCount(1);
-        violations.First().Should().Be(violation);
+        Assert.Single(violations);
+        Assert.Equal(violation, violations.First());
     }
 
     [Fact]
@@ -60,7 +61,7 @@ public class CheckableTests
         var violations = await checkable.CheckAsync();
 
         // Assert
-        violations.Should().BeAssignableTo<IReadOnlyList<Violation>>();
+        Assert.IsAssignableFrom<IReadOnlyList<Violation>>(violations);
     }
 
     [Fact]
@@ -74,11 +75,11 @@ public class CheckableTests
         var violations = await checkable.CheckAsync(options);
 
         // Assert
-        violations.Should().BeEmpty();
+        Assert.Empty(violations);
     }
 
     [Fact]
-    public async Task CheckAsync_IsAsync()
+    public void CheckAsync_IsAsync()
     {
         // Arrange
         var checkable = new MockCheckable();
@@ -87,7 +88,6 @@ public class CheckableTests
         var task = checkable.CheckAsync();
 
         // Assert
-        task.Should().BeAssignableTo<Task<IReadOnlyList<Violation>>>();
-        await task;
+        Assert.IsAssignableFrom<Task<IReadOnlyList<Violation>>>(task);
     }
 }

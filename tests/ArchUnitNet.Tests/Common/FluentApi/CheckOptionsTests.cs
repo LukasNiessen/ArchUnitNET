@@ -1,5 +1,6 @@
 using ArchUnitNet.Common.FluentApi;
 using ArchUnitNet.Common.Logging;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.FluentApi;
 
@@ -12,10 +13,10 @@ public class CheckOptionsTests
         var options = new CheckOptions();
 
         // Assert
-        options.AllowEmptyTests.Should().BeFalse();
-        options.Logging.Should().BeNull();
-        options.ClearCache.Should().BeFalse();
-        options.TimeoutMs.Should().BeNull();
+        Assert.False(options.AllowEmptyTests);
+        Assert.Null(options.Logging);
+        Assert.False(options.ClearCache);
+        Assert.Null(options.TimeoutMs);
     }
 
     [Fact]
@@ -25,7 +26,7 @@ public class CheckOptionsTests
         var options = new CheckOptions(AllowEmptyTests: true);
 
         // Assert
-        options.AllowEmptyTests.Should().BeTrue();
+        Assert.True(options.AllowEmptyTests);
     }
 
     [Fact]
@@ -38,8 +39,8 @@ public class CheckOptionsTests
         var options = new CheckOptions(Logging: logging);
 
         // Assert
-        options.Logging.Should().Be(logging);
-        options.Logging?.Verbose.Should().BeTrue();
+        Assert.Equal(logging, options.Logging);
+        Assert.True(options.Logging?.Verbose);
     }
 
     [Fact]
@@ -49,7 +50,7 @@ public class CheckOptionsTests
         var options = new CheckOptions(ClearCache: true);
 
         // Assert
-        options.ClearCache.Should().BeTrue();
+        Assert.True(options.ClearCache);
     }
 
     [Fact]
@@ -59,7 +60,7 @@ public class CheckOptionsTests
         var options = new CheckOptions(TimeoutMs: 5000);
 
         // Assert
-        options.TimeoutMs.Should().Be(5000);
+        Assert.Equal(5000, options.TimeoutMs);
     }
 
     [Fact]
@@ -76,10 +77,10 @@ public class CheckOptionsTests
             TimeoutMs: 10000);
 
         // Assert
-        options.AllowEmptyTests.Should().BeTrue();
-        options.Logging.Should().Be(logging);
-        options.ClearCache.Should().BeTrue();
-        options.TimeoutMs.Should().Be(10000);
+        Assert.True(options.AllowEmptyTests);
+        Assert.Equal(logging, options.Logging);
+        Assert.True(options.ClearCache);
+        Assert.Equal(10000, options.TimeoutMs);
     }
 
     [Fact]
@@ -90,6 +91,6 @@ public class CheckOptionsTests
         var options2 = new CheckOptions(AllowEmptyTests: true);
 
         // Act & Assert
-        options1.Should().Be(options2);
+        Assert.Equal(options1, options2);
     }
 }

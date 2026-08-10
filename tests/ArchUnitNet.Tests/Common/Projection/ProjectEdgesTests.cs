@@ -6,11 +6,11 @@ namespace ArchUnitNet.Tests.Common.Projection;
 
 public class ProjectEdgesTests
 {
-    private readonly Graph _graph;
+    private readonly ArchUnitNet.Common.Extraction.Graph _graph;
 
     public ProjectEdgesTests()
     {
-        _graph = new Graph(new[]
+        _graph = new ArchUnitNet.Common.Extraction.Graph(new[]
         {
             new Edge("src/Common/Error.cs", "System", External: true, ImportKinds: new[] { ImportKind.Using }),
             new Edge("src/Common/Error.cs", "System", External: true, ImportKinds: new[] { ImportKind.StaticUsing }),
@@ -107,11 +107,11 @@ public class ProjectEdgesTests
 
 public class ProjectNodesTests
 {
-    private readonly Graph _graph;
+    private readonly ArchUnitNet.Common.Extraction.Graph _graph;
 
     public ProjectNodesTests()
     {
-        _graph = new Graph(new[]
+        _graph = new ArchUnitNet.Common.Extraction.Graph(new[]
         {
             new Edge("src/Common/Error.cs", "src/Files/Parser.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
             new Edge("src/Files/Parser.cs", "src/Util/Helper.cs", External: false, ImportKinds: new[] { ImportKind.Using }),

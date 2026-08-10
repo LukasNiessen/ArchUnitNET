@@ -1,15 +1,42 @@
 <Project>
+
+  <!-- Common compiler settings -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <Version>0.1.0</Version>
-    <Authors>Sina Mohammad Rezaei</Authors>
-    <Description>Architecture testing for C# and .NET</Description>
-    <RepositoryUrl>https://github.com/LukasNiessen/ArchUnitNET</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
+    <WarningLevel>4</WarningLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
+
+  <!-- Package metadata -->
+  <PropertyGroup>
+    <Product>ArchUnitCSharp</Product>
+    <Company>ArchUnit Contributors</Company>
+    <Authors>Sina Mohammad Rezaei</Authors>
+    <Description>C#/.NET port of ArchUnitTS - Architecture testing for .NET applications</Description>
+    <PackageProjectUrl>https://github.com/LukasNiessen/ArchUnitTS</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/LukasNiessen/ArchUnitTS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>architecture;testing;quality;code-analysis;archunit;csharp;dotnet</PackageTags>
+    <Version>2.4.0</Version>
+  </PropertyGroup>
+
+  <!-- Documentation -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin/$(Configuration)/$(TargetFramework)/$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <!-- StyleCop Analyzers for code quality -->
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
 </Project>

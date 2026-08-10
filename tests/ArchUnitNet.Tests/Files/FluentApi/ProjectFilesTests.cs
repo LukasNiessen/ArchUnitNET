@@ -2,15 +2,17 @@ using ArchUnitNet.Common.Extraction;
 using ArchUnitNet.Common.Util;
 using ArchUnitNet.Files.FluentApi;
 
+#pragma warning disable xUnit2012 // Use Assert.Collection() to check multiple items in a collection
+
 namespace ArchUnitNet.Tests.Files.FluentApi;
 
 public class ProjectFilesTests
 {
-    private readonly Graph _sampleGraph;
+    private readonly ArchUnitNet.Common.Extraction.Graph _sampleGraph;
 
     public ProjectFilesTests()
     {
-        _sampleGraph = new Graph(new[]
+        _sampleGraph = new ArchUnitNet.Common.Extraction.Graph(new[]
         {
             new Edge("src/Dashboard/Dashboard.cs", "src/Orders/OrderRepository.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
             new Edge("src/Dashboard/Dashboard.cs", "System", External: true, ImportKinds: new[] { ImportKind.Using }),
@@ -131,5 +133,122 @@ public class ProjectFilesTests
 
         // Assert
         Assert.NotEmpty(violations);
+    }
+
+    [Fact]
+    public async Task HaveNoCycles_WithSimpleCycle_ReturnsViolations()
+    {
+        // Arrange: Create a cyclic graph
+        var cycleGraph = new ArchUnitNet.Common.Extraction.Graph(new[]
+        {
+            new Edge("A.cs", "B.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("B.cs", "C.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("C.cs", "A.cs", External: false, ImportKinds: new[] { ImportKind.Using })
+        });
+
+        var rule = ProjectFiles.From(cycleGraph)
+            .InPath("**/*.cs")
+            .ShouldNot()
+            .HaveNoCycles();
+
+        // Act
+        var violations = await rule.CheckAsync();
+
+        // Assert
+        Assert.NotNull(violations);
+        Assert.NotEmpty(violations);
+        Assert.True(violations.Any(v => v.ToString()?.Contains("Cyclic dependency") ?? false));
+    }
+
+    [Fact]
+    public async Task HaveNoCycles_WithNoCycles_ReturnsEmpty()
+    {
+        // Arrange: Linear graph with no cycles
+        var linearGraph = new ArchUnitNet.Common.Extraction.Graph(new[]
+        {
+            new Edge("A.cs", "B.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("B.cs", "C.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("C.cs", "Model.cs", External: false, ImportKinds: new[] { ImportKind.Using })
+        });
+
+        var rule = ProjectFiles.From(linearGraph)
+            .InPath("**/*.cs")
+            .ShouldNot()
+            .HaveNoCycles();
+
+        // Act
+        var violations = await rule.CheckAsync();
+
+        // Assert
+        Assert.Empty(violations);
+    }
+
+    [Fact]
+    public async Task HaveNoCycles_WithFilteredPath_OnlyChecksMatchingFiles()
+    {
+        // Arrange: Cycle exists but outside filtered path
+        var cycleGraph = new ArchUnitNet.Common.Extraction.Graph(new[]
+        {
+            new Edge("src/A.cs", "src/B.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("src/B.cs", "src/A.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("models/Model.cs", "models/Helper.cs", External: false, ImportKinds: new[] { ImportKind.Using })
+        });
+
+        var rule = ProjectFiles.From(cycleGraph)
+            .InPath("models/**")
+            .ShouldNot()
+            .HaveNoCycles();
+
+        // Act
+        var violations = await rule.CheckAsync();
+
+        // Assert
+        Assert.Empty(violations); // No cycles in models folder
+    }
+
+    [Fact]
+    public async Task HaveNoCycles_WithSelfLoop_ReturnsViolation()
+    {
+        // Arrange: Self-loop cycle
+        var selfLoopGraph = new ArchUnitNet.Common.Extraction.Graph(new[]
+        {
+            new Edge("A.cs", "A.cs", External: false, ImportKinds: new[] { ImportKind.Using })
+        });
+
+        var rule = ProjectFiles.From(selfLoopGraph)
+            .InPath("**/*.cs")
+            .ShouldNot()
+            .HaveNoCycles();
+
+        // Act
+        var violations = await rule.CheckAsync();
+
+        // Assert
+        Assert.NotEmpty(violations);
+    }
+
+    [Fact]
+    public async Task HaveNoCycles_WithMultipleSeparateCycles_ReturnsAllViolations()
+    {
+        // Arrange: Two separate cycles
+        var multiCycleGraph = new ArchUnitNet.Common.Extraction.Graph(new[]
+        {
+            new Edge("A.cs", "B.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("B.cs", "A.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("C.cs", "D.cs", External: false, ImportKinds: new[] { ImportKind.Using }),
+            new Edge("D.cs", "C.cs", External: false, ImportKinds: new[] { ImportKind.Using })
+        });
+
+        var rule = ProjectFiles.From(multiCycleGraph)
+            .InPath("**/*.cs")
+            .ShouldNot()
+            .HaveNoCycles();
+
+        // Act
+        var violations = await rule.CheckAsync();
+
+        // Assert
+        Assert.NotEmpty(violations);
+        Assert.True(violations.Count >= 2, "Should detect multiple cycles");
     }
 }

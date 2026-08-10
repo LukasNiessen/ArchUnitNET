@@ -1,5 +1,6 @@
 using ArchUnitNet.Common.Extraction;
 using ArchUnitNet.Common.Util;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.Extraction;
 
@@ -24,8 +25,8 @@ public class DependencyExtractorTests
         var graph = await _extractor.ExtractGraphAsync(projectPath);
 
         // Assert
-        graph.Should().NotBeNull();
-        graph.Edges.Should().BeAssignableTo<IReadOnlyList<Edge>>();
+        Assert.NotNull(graph);
+        Assert.IsAssignableFrom<IReadOnlyList<Edge>>(graph.Edges);
     }
 
     [Fact]
@@ -43,7 +44,7 @@ public class DependencyExtractorTests
             var graph = await _extractor.ExtractGraphAsync(null);
 
             // Assert
-            graph.Should().NotBeNull();
+            Assert.NotNull(graph);
         }
         finally
         {
@@ -62,7 +63,7 @@ public class DependencyExtractorTests
         var graph2 = await _extractor.ExtractGraphAsync(projectPath);
 
         // Assert - should be same object (cached)
-        graph1.Should().Be(graph2);
+        Assert.Same(graph1, graph2);
     }
 
     [Fact]
@@ -84,8 +85,7 @@ public class DependencyExtractorTests
         var invalidPath = "/this/path/does/not/exist.csproj";
 
         // Act & Assert
-        var action = async () => await _extractor.ExtractGraphAsync(invalidPath);
-        await action.Should().ThrowAsync<Exception>();
+        await Assert.ThrowsAsync<Exception>(async () => await _extractor.ExtractGraphAsync(invalidPath));
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class DependencyExtractorTests
         var graph = await _extractor.ExtractGraphAsync(unnormalizedPath);
 
         // Assert
-        graph.Should().NotBeNull();
+        Assert.NotNull(graph);
     }
 
     private static string FindTestProjectPath()
@@ -169,8 +169,8 @@ public class DependencyExtractorLoggerTests
         await extractor.ExtractGraphAsync(projectPath);
 
         // Assert
-        logger.LoggedMessages.Should().Contain(msg => msg.StartsWith("START:"));
-        logger.LoggedMessages.Should().Contain(msg => msg.StartsWith("COMPLETE:"));
+        Assert.Contains(logger.LoggedMessages, msg => msg.StartsWith("START:"));
+        Assert.Contains(logger.LoggedMessages, msg => msg.StartsWith("COMPLETE:"));
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class DependencyExtractorLoggerTests
         await extractor.ExtractGraphAsync(projectPath);
 
         // Assert
-        logger.LoggedMessages.Should().Contain(msg => msg.StartsWith("CACHE_HIT:"));
+        Assert.Contains(logger.LoggedMessages, msg => msg.StartsWith("CACHE_HIT:"));
     }
 
     private static string FindTestProjectPath()

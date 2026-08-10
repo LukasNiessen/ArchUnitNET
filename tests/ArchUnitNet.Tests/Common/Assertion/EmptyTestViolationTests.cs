@@ -1,4 +1,5 @@
 using ArchUnitNet.Common.Assertion;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.Assertion;
 
@@ -15,8 +16,8 @@ public class EmptyTestViolationTests
         var violation = new EmptyTestViolation(pattern, context);
 
         // Assert
-        violation.Pattern.Should().Be(pattern);
-        violation.Context.Should().Be(context);
+        Assert.Equal(pattern, violation.Pattern);
+        Assert.Equal(context, violation.Context);
     }
 
     [Fact]
@@ -29,8 +30,8 @@ public class EmptyTestViolationTests
         var violation = new EmptyTestViolation(pattern);
 
         // Assert
-        violation.Pattern.Should().Be(pattern);
-        violation.Context.Should().Be("file selection");
+        Assert.Equal(pattern, violation.Pattern);
+        Assert.Equal("file selection", violation.Context);
     }
 
     [Fact]
@@ -40,7 +41,7 @@ public class EmptyTestViolationTests
         var violation = new EmptyTestViolation("test");
 
         // Act & Assert
-        ((Violation)violation).Should().NotBeNull();
+        Assert.NotNull((Violation)violation);
     }
 
     [Fact]
@@ -53,9 +54,9 @@ public class EmptyTestViolationTests
         var str = violation.ToString();
 
         // Assert
-        str.Should().Contain("EmptyTestViolation");
-        str.Should().Contain("src/Controllers/**");
-        str.Should().Contain("files in folder");
+        Assert.Contains("EmptyTestViolation", str);
+        Assert.Contains("src/Controllers/**", str);
+        Assert.Contains("files in folder", str);
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public class EmptyTestViolationTests
         var v2 = new EmptyTestViolation("src/**", "files");
 
         // Act & Assert
-        v1.Should().Be(v2);
+        Assert.Equal(v1, v2);
     }
 
     [Fact]
@@ -77,6 +78,6 @@ public class EmptyTestViolationTests
         var v2 = new EmptyTestViolation("tests/**");
 
         // Act & Assert
-        v1.Should().NotBe(v2);
+        Assert.NotEqual(v1, v2);
     }
 }

@@ -17,10 +17,10 @@ public class EdgeTests
         var edge = new Edge(source, target, false, kinds);
 
         // Assert
-        edge.Source.Should().Be(source);
-        edge.Target.Should().Be(target);
-        edge.External.Should().BeFalse();
-        edge.ImportKinds.Should().Equal(kinds);
+        Assert.Equal(source, edge.Source);
+        Assert.Equal(target, edge.Target);
+        Assert.False(edge.External);
+        Assert.Equal(kinds, edge.ImportKinds);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class EdgeTests
         var edge = new Edge(source, target, true, kinds);
 
         // Assert
-        edge.External.Should().BeTrue();
+        Assert.True(edge.External);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class EdgeTests
         var edge = new Edge("src/A.cs", "src/B.cs", false, kinds);
 
         // Assert
-        edge.ImportKinds.Should().HaveCount(2);
+        Assert.Equal(2, edge.ImportKinds.Count);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class EdgeTests
         var edge = new Edge("src/Common.cs", "src/Common.cs", false, new[] { ImportKind.Using });
 
         // Act & Assert
-        edge.IsSelfEdge.Should().BeTrue();
+        Assert.True(edge.IsSelfEdge);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class EdgeTests
         var edge = new Edge("src/A.cs", "src/B.cs", false, new[] { ImportKind.Using });
 
         // Act & Assert
-        edge.IsSelfEdge.Should().BeFalse();
+        Assert.False(edge.IsSelfEdge);
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public class EdgeTests
         var edge = new Edge(null!, "src/B.cs", false, new[] { ImportKind.Using });
 
         // Act & Assert
-        var action = () => edge.Validate();
-        action.Should().Throw<ArgumentException>().WithMessage("*source*");
+        var ex = Assert.Throws<ArgumentException>(() => edge.Validate());
+        Assert.Contains("source", ex.Message);
     }
 
     [Fact]
@@ -89,8 +89,8 @@ public class EdgeTests
         var edge = new Edge("src/A.cs", null!, false, new[] { ImportKind.Using });
 
         // Act & Assert
-        var action = () => edge.Validate();
-        action.Should().Throw<ArgumentException>().WithMessage("*target*");
+        var ex = Assert.Throws<ArgumentException>(() => edge.Validate());
+        Assert.Contains("target", ex.Message);
     }
 
     [Fact]
@@ -100,8 +100,8 @@ public class EdgeTests
         var edge = new Edge("src/A.cs", "src/B.cs", false, new List<ImportKind>());
 
         // Act & Assert
-        var action = () => edge.Validate();
-        action.Should().Throw<ArgumentException>().WithMessage("*ImportKind*");
+        var ex = Assert.Throws<ArgumentException>(() => edge.Validate());
+        Assert.Contains("ImportKind", ex.Message);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class EdgeTests
         var edge2 = new Edge("src/A.cs", "src/B.cs", false, new[] { ImportKind.Using });
 
         // Act & Assert
-        edge1.Should().Be(edge2);
+        Assert.Equal(edge1, edge2);
     }
 
     [Fact]
@@ -123,6 +123,6 @@ public class EdgeTests
         var edge2 = new Edge("src/A.cs", "src/C.cs", false, new[] { ImportKind.Using });
 
         // Act & Assert
-        edge1.Should().NotBe(edge2);
+        Assert.NotEqual(edge1, edge2);
     }
 }

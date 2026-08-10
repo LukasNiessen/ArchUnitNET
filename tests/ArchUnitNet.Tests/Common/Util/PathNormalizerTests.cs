@@ -1,4 +1,5 @@
 using ArchUnitNet.Common.Util;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.Util;
 
@@ -14,7 +15,7 @@ public class PathNormalizerTests
         public void Normalize_ConvertBackslashesToForwardSlashes(string input, string expected)
         {
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
 
         [Theory]
@@ -24,7 +25,7 @@ public class PathNormalizerTests
         public void Normalize_RemovesDotDirectory(string input, string expected)
         {
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
 
         [Theory]
@@ -35,7 +36,7 @@ public class PathNormalizerTests
         public void Normalize_ResolvesParentDirectory(string input, string expected)
         {
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
 
         [Theory]
@@ -45,7 +46,7 @@ public class PathNormalizerTests
         public void Normalize_RemovesDuplicateSlashes(string input, string expected)
         {
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -53,21 +54,19 @@ public class PathNormalizerTests
         {
             var uncPath = "\\\\server\\share\\folder";
             var result = PathNormalizer.Normalize(uncPath);
-            result.Should().Be("//server/share/folder");
+            Assert.Equal("//server/share/folder", result);
         }
 
         [Fact]
         public void Normalize_ThrowsOnNullPath()
         {
-            var action = () => PathNormalizer.Normalize(null!);
-            action.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(() => PathNormalizer.Normalize(null!));
         }
 
         [Fact]
         public void Normalize_ThrowsOnEmptyPath()
         {
-            var action = () => PathNormalizer.Normalize("");
-            action.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(() => PathNormalizer.Normalize(""));
         }
 
         [Theory]
@@ -76,7 +75,7 @@ public class PathNormalizerTests
         public void Normalize_HandlesAbsoluteWindowsPaths(string input, string expected)
         {
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
 
         [Theory]
@@ -85,7 +84,7 @@ public class PathNormalizerTests
         public void Normalize_HandlesAbsoluteUnixPaths(string input, string expected)
         {
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
     }
 
@@ -99,7 +98,7 @@ public class PathNormalizerTests
         public void RemoveTrailingSlash_RemovesSlashIfPresent(string input, string expected)
         {
             var result = PathNormalizer.RemoveTrailingSlash(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
     }
 
@@ -112,7 +111,7 @@ public class PathNormalizerTests
         public void EnsureTrailingSlash_AddsSlashIfMissing(string input, string expected)
         {
             var result = PathNormalizer.EnsureTrailingSlash(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
     }
 
@@ -127,7 +126,7 @@ public class PathNormalizerTests
         public void GetDirectory_ReturnsDirectoryPart(string input, string expected)
         {
             var result = PathNormalizer.GetDirectory(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
     }
 
@@ -141,7 +140,7 @@ public class PathNormalizerTests
         public void GetFileName_ReturnsFileNamePart(string input, string expected)
         {
             var result = PathNormalizer.GetFileName(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
     }
 
@@ -154,14 +153,13 @@ public class PathNormalizerTests
         public void GetRelativePath_ReturnsRelativePath(string baseDir, string targetPath, string expected)
         {
             var result = PathNormalizer.GetRelativePath(baseDir, targetPath);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
         public void GetRelativePath_ThrowsWhenTargetNotUnderBase()
         {
-            var action = () => PathNormalizer.GetRelativePath("src", "tests/Common/Error.cs");
-            action.Should().Throw<ArgumentException>();
+            Assert.Throws<ArgumentException>(() => PathNormalizer.GetRelativePath("src", "tests/Common/Error.cs"));
         }
     }
 
@@ -176,7 +174,7 @@ public class PathNormalizerTests
         public void IsAbsolute_DetectsAbsolutePath(string input, bool expected)
         {
             var result = PathNormalizer.IsAbsolute(input);
-            result.Should().Be(expected);
+            Assert.Equal(expected, result);
         }
     }
 
@@ -187,7 +185,7 @@ public class PathNormalizerTests
         {
             var input = "src\\Common\\..\\Files\\./FluentApi";
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be("src/Files/FluentApi");
+            Assert.Equal("src/Files/FluentApi", result);
         }
 
         [Fact]
@@ -195,7 +193,7 @@ public class PathNormalizerTests
         {
             var input = "a/b/c/d/../../../../e";
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be("e");
+            Assert.Equal("e", result);
         }
 
         [Fact]
@@ -204,7 +202,7 @@ public class PathNormalizerTests
             // Going up more than the depth — should just stop at root
             var input = "a/b/../../../../../../c";
             var result = PathNormalizer.Normalize(input);
-            result.Should().Be("c");
+            Assert.Equal("c", result);
         }
     }
 }

@@ -99,4 +99,36 @@ public static class ProjectNodes
             .Distinct()
             .ToList();
     }
+
+    /// <summary>
+    /// Extract nodes that depend on the given target (Graph overload).
+    /// </summary>
+    public static List<string> ExtractDependents(Graph graph, string target)
+    {
+        return ExtractDependents(graph.Edges.ToList(), target);
+    }
+
+    /// <summary>
+    /// Extract nodes that the given source depends on (Graph overload).
+    /// </summary>
+    public static List<string> ExtractDependencies(Graph graph, string source)
+    {
+        return ExtractDependencies(graph.Edges.ToList(), source);
+    }
+
+    /// <summary>
+    /// Count how many edges point TO this node (Graph overload).
+    /// </summary>
+    public static int ExtractInDegree(Graph graph, string node)
+    {
+        return ExtractInDegree(graph.Edges.ToList(), node);
+    }
+
+    /// <summary>
+    /// Count how many edges originate FROM this node (Graph overload).
+    /// </summary>
+    public static int ExtractOutDegree(Graph graph, string node)
+    {
+        return ExtractOutDegree(graph.Edges.ToList(), node);
+    }
 }

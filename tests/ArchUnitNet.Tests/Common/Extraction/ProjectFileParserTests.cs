@@ -47,9 +47,9 @@ public class ProjectFileParserTests : IDisposable
         var sourceFiles = ProjectFileParser.FindSourceFiles(csprojPath);
 
         // Assert
-        sourceFiles.Should().HaveCount(2);
-        sourceFiles.Should().Contain("src/Common/Error.cs");
-        sourceFiles.Should().Contain("src/Common/Util/PathNormalizer.cs");
+        Assert.Equal(2, sourceFiles.Count);
+        Assert.Contains("src/Common/Error.cs", sourceFiles);
+        Assert.Contains("src/Common/Util/PathNormalizer.cs", sourceFiles);
     }
 
     [Fact]
@@ -59,8 +59,8 @@ public class ProjectFileParserTests : IDisposable
         var csprojPath = Path.Combine(_tempDir, "NonExistent.csproj");
 
         // Act & Assert
-        var action = () => ProjectFileParser.FindSourceFiles(csprojPath);
-        action.Should().Throw<UserError>().WithMessage("*not found*");
+        var ex = Assert.Throws<UserError>(() => ProjectFileParser.FindSourceFiles(csprojPath));
+        Assert.Contains("not found", ex.Message);
     }
 
     [Fact]
@@ -71,8 +71,8 @@ public class ProjectFileParserTests : IDisposable
         File.WriteAllText(txtPath, "not a project file");
 
         // Act & Assert
-        var action = () => ProjectFileParser.FindSourceFiles(txtPath);
-        action.Should().Throw<UserError>().WithMessage("*.csproj*");
+        var ex = Assert.Throws<UserError>(() => ProjectFileParser.FindSourceFiles(txtPath));
+        Assert.Contains("csproj", ex.Message);
     }
 
     [Fact]
@@ -99,9 +99,9 @@ public class ProjectFileParserTests : IDisposable
         var sourceFiles = ProjectFileParser.FindSourceFiles(csprojPath);
 
         // Assert
-        sourceFiles.Should().HaveCount(2);
-        sourceFiles.Should().Contain(f => f.Contains("File1.cs"));
-        sourceFiles.Should().Contain(f => f.Contains("File2.cs"));
+        Assert.Equal(2, sourceFiles.Count);
+        Assert.Contains(sourceFiles, f => f.Contains("File1.cs"));
+        Assert.Contains(sourceFiles, f => f.Contains("File2.cs"));
     }
 
     [Fact]
@@ -132,10 +132,10 @@ public class ProjectFileParserTests : IDisposable
         var sourceFiles = ProjectFileParser.FindSourceFiles(csprojPath);
 
         // Assert
-        sourceFiles.Should().HaveCount(3);
-        sourceFiles.Should().Contain(f => f.Contains("Common"));
-        sourceFiles.Should().Contain(f => f.Contains("Files"));
-        sourceFiles.Should().Contain(f => f.Contains("tests"));
+        Assert.Equal(3, sourceFiles.Count);
+        Assert.Contains(sourceFiles, f => f.Contains("Common"));
+        Assert.Contains(sourceFiles, f => f.Contains("Files"));
+        Assert.Contains(sourceFiles, f => f.Contains("tests"));
     }
 
     [Fact]
@@ -163,8 +163,8 @@ public class ProjectFileParserTests : IDisposable
         var sourceFiles = ProjectFileParser.FindSourceFiles(csprojPath);
 
         // Assert
-        sourceFiles.Should().HaveCount(1);
-        sourceFiles.First().Should().Be("src/Common/Error.cs"); // Forward slashes
+        Assert.Single(sourceFiles);
+        Assert.Equal("src/Common/Error.cs", sourceFiles.First()); // Forward slashes
     }
 
     [Fact]
@@ -175,7 +175,6 @@ public class ProjectFileParserTests : IDisposable
         File.WriteAllText(csprojPath, "not valid xml");
 
         // Act & Assert
-        var action = () => ProjectFileParser.FindSourceFiles(csprojPath);
-        action.Should().Throw<TechnicalError>();
+        Assert.Throws<TechnicalError>(() => ProjectFileParser.FindSourceFiles(csprojPath));
     }
 }

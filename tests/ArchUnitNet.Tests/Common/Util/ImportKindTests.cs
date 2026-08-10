@@ -1,4 +1,5 @@
 using ArchUnitNet.Common.Util;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.Util;
 
@@ -8,25 +9,25 @@ public class ImportKindTests
     public void Using_HasCorrectValue()
     {
         var kind = ImportKind.Using;
-        kind.Should().Be(ImportKind.Using);
+        Assert.Equal(ImportKind.Using, kind);
     }
 
     [Fact]
     public void GetDescription_ReturnsCorrectDescription()
     {
-        ImportKind.Using.GetDescription().Should().Be("using statement");
-        ImportKind.StaticUsing.GetDescription().Should().Be("static using");
-        ImportKind.GlobalUsing.GetDescription().Should().Be("global using");
-        ImportKind.AliasUsing.GetDescription().Should().Be("alias using");
-        ImportKind.ExternAlias.GetDescription().Should().Be("extern alias");
+        Assert.Equal("using statement", ImportKind.Using.GetDescription());
+        Assert.Equal("static using", ImportKind.StaticUsing.GetDescription());
+        Assert.Equal("global using", ImportKind.GlobalUsing.GetDescription());
+        Assert.Equal("alias using", ImportKind.AliasUsing.GetDescription());
+        Assert.Equal("extern alias", ImportKind.ExternAlias.GetDescription());
     }
 
     [Fact]
     public void CanCombineFlags()
     {
         var combined = ImportKind.Using | ImportKind.StaticUsing;
-        combined.Should().HaveFlag(ImportKind.Using);
-        combined.Should().HaveFlag(ImportKind.StaticUsing);
+        Assert.True(combined.HasFlag(ImportKind.Using));
+        Assert.True(combined.HasFlag(ImportKind.StaticUsing));
     }
 
     [Fact]
@@ -35,10 +36,10 @@ public class ImportKindTests
         var combined = ImportKind.Using | ImportKind.StaticUsing | ImportKind.GlobalUsing;
         var individual = combined.GetIndividualKinds().ToList();
 
-        individual.Should().Contain(ImportKind.Using);
-        individual.Should().Contain(ImportKind.StaticUsing);
-        individual.Should().Contain(ImportKind.GlobalUsing);
-        individual.Should().HaveCount(3);
+        Assert.Contains(ImportKind.Using, individual);
+        Assert.Contains(ImportKind.StaticUsing, individual);
+        Assert.Contains(ImportKind.GlobalUsing, individual);
+        Assert.Equal(3, individual.Count);
     }
 
     [Fact]
@@ -46,6 +47,6 @@ public class ImportKindTests
     {
         var empty = (ImportKind)0;
         var individual = empty.GetIndividualKinds().ToList();
-        individual.Should().BeEmpty();
+        Assert.Empty(individual);
     }
 }

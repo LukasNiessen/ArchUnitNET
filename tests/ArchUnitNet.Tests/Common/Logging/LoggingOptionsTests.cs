@@ -11,9 +11,9 @@ public class LoggingOptionsTests
         var options = new LoggingOptions();
 
         // Assert
-        options.Verbose.Should().BeFalse();
-        options.LogToConsole.Should().BeFalse();
-        options.Context.Should().BeNull();
+        Assert.False(options.Verbose);
+        Assert.False(options.LogToConsole);
+        Assert.Null(options.Context);
     }
 
     [Fact]
@@ -23,7 +23,7 @@ public class LoggingOptionsTests
         var options = new LoggingOptions(Verbose: true);
 
         // Assert
-        options.Verbose.Should().BeTrue();
+        Assert.True(options.Verbose);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class LoggingOptionsTests
         var options = new LoggingOptions(LogToConsole: true);
 
         // Assert
-        options.LogToConsole.Should().BeTrue();
+        Assert.True(options.LogToConsole);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class LoggingOptionsTests
         var options = new LoggingOptions(Context: "FileRules");
 
         // Assert
-        options.Context.Should().Be("FileRules");
+        Assert.Equal("FileRules", options.Context);
     }
 
     [Fact]
@@ -56,9 +56,9 @@ public class LoggingOptionsTests
             Context: "MetricsCheck");
 
         // Assert
-        options.Verbose.Should().BeTrue();
-        options.LogToConsole.Should().BeTrue();
-        options.Context.Should().Be("MetricsCheck");
+        Assert.True(options.Verbose);
+        Assert.True(options.LogToConsole);
+        Assert.Equal("MetricsCheck", options.Context);
     }
 
     [Fact]
@@ -69,6 +69,6 @@ public class LoggingOptionsTests
         var options2 = new LoggingOptions(Verbose: true);
 
         // Act & Assert
-        options1.Should().Be(options2);
+        Assert.Equal(options1, options2);
     }
 }

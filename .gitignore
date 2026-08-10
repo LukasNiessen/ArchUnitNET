@@ -48,3 +48,25 @@ BenchmarkDotNet.Artifacts/
 # IDE
 .DS_Store
 Thumbs.db
+
+# Documentation
+docs/_site/
+docs/api/
+
+# Code Coverage
+opencover/
+coverage/
+coveragereport/
+*.coverage
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+*~
+*.orig
+*.rej
+
+# Distribution
+dist/
+nupkg/

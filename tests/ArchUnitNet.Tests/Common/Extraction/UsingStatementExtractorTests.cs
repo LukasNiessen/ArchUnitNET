@@ -1,6 +1,7 @@
 using ArchUnitNet.Common.Extraction;
 using ArchUnitNet.Common.Util;
 using Microsoft.CodeAnalysis.CSharp;
+using Xunit;
 
 namespace ArchUnitNet.Tests.Common.Extraction;
 
@@ -23,10 +24,10 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().HaveCount(1);
-        imports.First().Name.Should().Be("System");
-        imports.First().Kind.Should().Be(ImportKind.Using);
-        imports.First().IsGlobal.Should().BeFalse();
+        Assert.Single(imports);
+        Assert.Equal("System", imports.First().Name);
+        Assert.Equal(ImportKind.Using, imports.First().Kind);
+        Assert.False(imports.First().IsGlobal);
     }
 
     [Fact]
@@ -48,10 +49,10 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().HaveCount(3);
-        imports.Should().Contain(i => i.Name == "System");
-        imports.Should().Contain(i => i.Name == "System.Collections.Generic");
-        imports.Should().Contain(i => i.Name == "System.Linq");
+        Assert.Equal(3, imports.Count);
+        Assert.Contains(imports, i => i.Name == "System");
+        Assert.Contains(imports, i => i.Name == "System.Collections.Generic");
+        Assert.Contains(imports, i => i.Name == "System.Linq");
     }
 
     [Fact]
@@ -71,9 +72,9 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().HaveCount(1);
-        imports.First().Name.Should().Be("System.Console");
-        imports.First().Kind.Should().Be(ImportKind.StaticUsing);
+        Assert.Single(imports);
+        Assert.Equal("System.Console", imports.First().Name);
+        Assert.Equal(ImportKind.StaticUsing, imports.First().Kind);
     }
 
     [Fact]
@@ -93,10 +94,10 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().HaveCount(1);
-        imports.First().Name.Should().Be("System");
-        imports.First().Kind.Should().Be(ImportKind.GlobalUsing);
-        imports.First().IsGlobal.Should().BeTrue();
+        Assert.Single(imports);
+        Assert.Equal("System", imports.First().Name);
+        Assert.Equal(ImportKind.GlobalUsing, imports.First().Kind);
+        Assert.True(imports.First().IsGlobal);
     }
 
     [Fact]
@@ -116,9 +117,9 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().HaveCount(1);
-        imports.First().Name.Should().Be("System.String");
-        imports.First().Kind.Should().Be(ImportKind.AliasUsing);
+        Assert.Single(imports);
+        Assert.Equal("System.String", imports.First().Name);
+        Assert.Equal(ImportKind.AliasUsing, imports.First().Kind);
     }
 
     [Fact]
@@ -141,11 +142,11 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().HaveCount(4);
-        imports.Should().Contain(i => i.Kind == ImportKind.Using);
-        imports.Should().Contain(i => i.Kind == ImportKind.StaticUsing);
-        imports.Should().Contain(i => i.Kind == ImportKind.AliasUsing);
-        imports.Should().Contain(i => i.Kind == ImportKind.GlobalUsing);
+        Assert.Equal(4, imports.Count);
+        Assert.Contains(imports, i => i.Kind == ImportKind.Using);
+        Assert.Contains(imports, i => i.Kind == ImportKind.StaticUsing);
+        Assert.Contains(imports, i => i.Kind == ImportKind.AliasUsing);
+        Assert.Contains(imports, i => i.Kind == ImportKind.GlobalUsing);
     }
 
     [Fact]
@@ -165,7 +166,7 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().BeEmpty();
+        Assert.Empty(imports);
     }
 
     [Fact]
@@ -187,7 +188,7 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().BeEmpty();
+        Assert.Empty(imports);
     }
 
     [Fact]
@@ -208,7 +209,7 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().HaveCount(2);
+        Assert.Equal(2, imports.Count);
     }
 
     [Fact]
@@ -225,6 +226,6 @@ public class UsingStatementExtractorTests
         var imports = extractor.GetImports();
 
         // Assert
-        imports.Should().BeAssignableTo<IReadOnlyList<ImportedNamespace>>();
+        Assert.IsAssignableFrom<IReadOnlyList<ImportedNamespace>>(imports);
     }
 }

@@ -20,9 +20,9 @@ public class SyntaxTreeAnalyzerTests
         var imports = _analyzer.ExtractImportsFromFile("src/Test.cs", code);
 
         // Assert
-        imports.Should().HaveCount(1);
-        imports.First().ImportedNamespace.Should().Be("System");
-        imports.First().Kind.Should().Be(ImportKind.Using);
+        Assert.Single(imports);
+        Assert.Equal("System", imports.First().ImportedNamespace);
+        Assert.Equal(ImportKind.Using, imports.First().Kind);
     }
 
     [Fact]
@@ -40,10 +40,10 @@ public class SyntaxTreeAnalyzerTests
         var imports = _analyzer.ExtractImportsFromFile("src/Test.cs", code);
 
         // Assert
-        imports.Should().HaveCount(3);
-        imports.Should().Contain(i => i.ImportedNamespace == "System");
-        imports.Should().Contain(i => i.ImportedNamespace == "System.Collections.Generic");
-        imports.Should().Contain(i => i.ImportedNamespace == "System.Linq");
+        Assert.Equal(3, imports.Count);
+        Assert.Contains(imports, i => i.ImportedNamespace == "System");
+        Assert.Contains(imports, i => i.ImportedNamespace == "System.Collections.Generic");
+        Assert.Contains(imports, i => i.ImportedNamespace == "System.Linq");
     }
 
     [Fact]
@@ -61,10 +61,10 @@ public class SyntaxTreeAnalyzerTests
         var imports = _analyzer.ExtractImportsFromFile("src/Test.cs", code);
 
         // Assert
-        imports.Should().HaveCount(3);
-        imports.Should().Contain(i => i.Kind == ImportKind.Using);
-        imports.Should().Contain(i => i.Kind == ImportKind.StaticUsing);
-        imports.Should().Contain(i => i.Kind == ImportKind.AliasUsing);
+        Assert.Equal(3, imports.Count);
+        Assert.Contains(imports, i => i.Kind == ImportKind.Using);
+        Assert.Contains(imports, i => i.Kind == ImportKind.StaticUsing);
+        Assert.Contains(imports, i => i.Kind == ImportKind.AliasUsing);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class SyntaxTreeAnalyzerTests
         var imports = _analyzer.ExtractImportsFromFile("src/Empty.cs", code);
 
         // Assert
-        imports.Should().BeEmpty();
+        Assert.Empty(imports);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class SyntaxTreeAnalyzerTests
         var imports = _analyzer.ExtractImportsFromFile("src/Test.cs", code);
 
         // Assert
-        imports.Should().BeEmpty();
+        Assert.Empty(imports);
     }
 
     [Fact]
@@ -105,53 +105,52 @@ public class SyntaxTreeAnalyzerTests
         var code = "this is not valid c#";
 
         // Act & Assert
-        var action = () => _analyzer.ExtractImportsFromFile("src/Invalid.cs", code);
         // Note: Roslyn is quite forgiving, so invalid code might still parse
         // We just verify it doesn't throw in normal parsing
-        action.Should().NotThrow();
+        _analyzer.ExtractImportsFromFile("src/Invalid.cs", code);
     }
 
     [Fact]
     public void IsExternalNamespace_SystemNamespaces()
     {
         // Act & Assert
-        _analyzer.IsExternalNamespace("System").Should().BeTrue();
-        _analyzer.IsExternalNamespace("System.Collections").Should().BeTrue();
-        _analyzer.IsExternalNamespace("System.Linq").Should().BeTrue();
+        Assert.True(_analyzer.IsExternalNamespace("System"));
+        Assert.True(_analyzer.IsExternalNamespace("System.Collections"));
+        Assert.True(_analyzer.IsExternalNamespace("System.Linq"));
     }
 
     [Fact]
     public void IsExternalNamespace_MicrosoftNamespaces()
     {
         // Act & Assert
-        _analyzer.IsExternalNamespace("Microsoft.CodeAnalysis").Should().BeTrue();
-        _analyzer.IsExternalNamespace("Microsoft.Extensions").Should().BeTrue();
+        Assert.True(_analyzer.IsExternalNamespace("Microsoft.CodeAnalysis"));
+        Assert.True(_analyzer.IsExternalNamespace("Microsoft.Extensions"));
     }
 
     [Fact]
     public void IsExternalNamespace_PopularPackages()
     {
         // Act & Assert
-        _analyzer.IsExternalNamespace("Newtonsoft.Json").Should().BeTrue();
-        _analyzer.IsExternalNamespace("xunit").Should().BeTrue();
-        _analyzer.IsExternalNamespace("FluentAssertions").Should().BeTrue();
+        Assert.True(_analyzer.IsExternalNamespace("Newtonsoft.Json"));
+        Assert.True(_analyzer.IsExternalNamespace("xunit"));
+        Assert.True(_analyzer.IsExternalNamespace("FluentAssertions"));
     }
 
     [Fact]
     public void IsExternalNamespace_InternalNamespaces()
     {
         // Act & Assert
-        _analyzer.IsExternalNamespace("MyApp").Should().BeFalse();
-        _analyzer.IsExternalNamespace("MyApp.Services").Should().BeFalse();
-        _analyzer.IsExternalNamespace("MyApp.Common.Utils").Should().BeFalse();
+        Assert.False(_analyzer.IsExternalNamespace("MyApp"));
+        Assert.False(_analyzer.IsExternalNamespace("MyApp.Services"));
+        Assert.False(_analyzer.IsExternalNamespace("MyApp.Common.Utils"));
     }
 
     [Fact]
     public void IsExternalNamespace_EdgeCases()
     {
         // Act & Assert
-        _analyzer.IsExternalNamespace("").Should().BeFalse();
-        _analyzer.IsExternalNamespace(null!).Should().BeFalse();
+        Assert.False(_analyzer.IsExternalNamespace(""));
+        Assert.False(_analyzer.IsExternalNamespace(null!));
     }
 
     [Fact]
@@ -183,14 +182,14 @@ public class SyntaxTreeAnalyzerTests
         var imports = _analyzer.ExtractImportsFromFile("src/Controllers/UserController.cs", code);
 
         // Assert
-        imports.Should().HaveCount(5);
+        Assert.Equal(5, imports.Count);
 
         // Verify each import
         var importsList = imports.Select(i => i.ImportedNamespace).ToList();
-        importsList.Should().Contain("System");
-        importsList.Should().Contain("System.Collections.Generic");
-        importsList.Should().Contain("Microsoft.Extensions.DependencyInjection");
-        importsList.Should().Contain("MyApp.Services");
-        importsList.Should().Contain("MyApp.Common");
+        Assert.Contains("System", importsList);
+        Assert.Contains("System.Collections.Generic", importsList);
+        Assert.Contains("Microsoft.Extensions.DependencyInjection", importsList);
+        Assert.Contains("MyApp.Services", importsList);
+        Assert.Contains("MyApp.Common", importsList);
     }
 }

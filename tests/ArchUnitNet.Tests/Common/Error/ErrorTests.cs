@@ -29,8 +29,8 @@ public class TechnicalErrorTests
         var error = new TechnicalError(message, innerException);
 
         // Assert
-        error.Message.Should().Be(message);
-        error.InnerException.Should().Be(innerException);
+        Assert.Equal(message, error.Message);
+        Assert.Equal(innerException, error.InnerException);
     }
 
     [Fact]
@@ -40,7 +40,14 @@ public class TechnicalErrorTests
         var error = new TechnicalError("Test error");
 
         // Act & Assert
-        ((Action)(() => throw error)).Should().Throw<TechnicalError>();
+        try
+        {
+            throw error;
+        }
+        catch (TechnicalError ex)
+        {
+            Assert.Equal("Test error", ex.Message);
+        }
     }
 }
 
@@ -56,7 +63,7 @@ public class UserErrorTests
         var error = new UserError(message);
 
         // Assert
-        error.Message.Should().Be(message);
+        Assert.Equal(message, error.Message);
     }
 
     [Fact]
@@ -70,8 +77,8 @@ public class UserErrorTests
         var error = new UserError(message, innerException);
 
         // Assert
-        error.Message.Should().Be(message);
-        error.InnerException.Should().Be(innerException);
+        Assert.Equal(message, error.Message);
+        Assert.Equal(innerException, error.InnerException);
     }
 
     [Fact]
@@ -81,6 +88,13 @@ public class UserErrorTests
         var error = new UserError("Test error");
 
         // Act & Assert
-        ((Action)(() => throw error)).Should().Throw<UserError>();
+        try
+        {
+            throw error;
+        }
+        catch (UserError ex)
+        {
+            Assert.Equal("Test error", ex.Message);
+        }
     }
 }
