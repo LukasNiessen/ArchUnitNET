@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Newtonsoft.Json;
+using ArchUnitNet.Common.Assertion;
 
 namespace ArchUnitNet.Reporting;
 

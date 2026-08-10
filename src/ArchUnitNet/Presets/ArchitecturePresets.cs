@@ -1,3 +1,4 @@
+using ArchUnitNet.Common.Assertion;
 using ArchUnitNet.Common.FluentApi;
 using ArchUnitNet.Files;
 using ArchUnitNet.Slices;
