@@ -43,4 +43,13 @@ public class FilesShouldCondition
     {
         return new ExternalDependencyCondition(_graph, _fileMatcher, negated: _negated);
     }
+
+    /// <summary>
+    /// Define custom rules using a predicate function.
+    /// Example: .AdhereTo(edge => !edge.Source.Contains("Old") || edge.Target.Contains("New"))
+    /// </summary>
+    public CustomPredicateCondition AdhereTo(Func<Edge, bool> predicate)
+    {
+        return new CustomPredicateCondition(_graph, _fileMatcher, negated: _negated).AdhereTo(predicate);
+    }
 }
