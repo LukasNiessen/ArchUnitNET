@@ -34,4 +34,13 @@ public class FilesShouldCondition
     {
         return new FilePatternCondition(_graph, _fileMatcher, pattern, negated: _negated);
     }
+
+    /// <summary>
+    /// Check dependencies on external modules (NuGet packages).
+    /// Example: .DependOnExternalModules().Matching("Newtonsoft.*")
+    /// </summary>
+    public ExternalDependencyCondition DependOnExternalModules()
+    {
+        return new ExternalDependencyCondition(_graph, _fileMatcher, negated: _negated);
+    }
 }
