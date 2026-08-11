@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArchUnitNet", "src\ArchUnit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArchUnitNet.Tests", "tests\ArchUnitNet.Tests\ArchUnitNet.Tests.csproj", "{9E5G4B2D-6F3C-5B0G-9C2E-8D7F6G5B4C3D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArchUnitNet.Dogfood", "src\ArchUnitNet.Dogfood\ArchUnitNet.Dogfood.csproj", "{7F6E5D4C-3B2A-1A0F-9E8D-7C6B5A4F3E2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,5 +23,9 @@ Global
 		{9E5G4B2D-6F3C-5B0G-9C2E-8D7F6G5B4C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E5G4B2D-6F3C-5B0G-9C2E-8D7F6G5B4C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E5G4B2D-6F3C-5B0G-9C2E-8D7F6G5B4C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F6E5D4C-3B2A-1A0F-9E8D-7C6B5A4F3E2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F6E5D4C-3B2A-1A0F-9E8D-7C6B5A4F3E2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F6E5D4C-3B2A-1A0F-9E8D-7C6B5A4F3E2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F6E5D4C-3B2A-1A0F-9E8D-7C6B5A4F3E2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
