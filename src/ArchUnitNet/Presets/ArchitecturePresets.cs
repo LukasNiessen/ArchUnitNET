@@ -46,6 +46,24 @@ public static class ArchitecturePresets
     /// </summary>
     public static CleanArchitecturePreset CleanArchitecture()
         => new();
+
+    /// <summary>
+    /// Modular monolith template: Independent modules with clear boundaries.
+    /// </summary>
+    public static ModularMonolithPreset ModularMonolith()
+        => new();
+
+    /// <summary>
+    /// Domain-driven design template: Bounded contexts with domain-focused isolation.
+    /// </summary>
+    public static DomainDrivenDesignPreset DomainDrivenDesign()
+        => new();
+
+    /// <summary>
+    /// Event-driven architecture template: Event bus decoupling with minimal direct dependencies.
+    /// </summary>
+    public static EventDrivenArchitecturePreset EventDrivenArchitecture()
+        => new();
 }
 
 /// <summary>
@@ -426,6 +444,203 @@ public class CleanArchitecturePreset
                 .InPath("src/**")
                 .Should()
                 .HaveNoCycles()
+        };
+    }
+
+    public async Task<List<Violation>> ValidateAsync()
+    {
+        var violations = new List<Violation>();
+        foreach (var rule in BuildRules())
+        {
+            var result = await rule.CheckAsync();
+            violations.AddRange(result);
+        }
+        return violations;
+    }
+}
+
+/// <summary>
+/// Modular Monolith: Independent modules with clear boundaries and minimal cross-module dependencies.
+/// </summary>
+public class ModularMonolithPreset
+{
+    private string _projectPath = null!;
+    private string _modulesPattern = "src/Modules/{Module}/**";
+
+    public ModularMonolithPreset WithProjectPath(string projectPath)
+    {
+        _projectPath = projectPath;
+        return this;
+    }
+
+    public ModularMonolithPreset WithModulesPattern(string modulesPattern)
+    {
+        _modulesPattern = modulesPattern;
+        return this;
+    }
+
+    public IEnumerable<Checkable> BuildRules()
+    {
+        if (string.IsNullOrEmpty(_projectPath))
+            throw new InvalidOperationException("Project path must be set via WithProjectPath()");
+
+        return new Checkable[]
+        {
+            // Modules should not have circular dependencies
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath(_modulesPattern)
+                .Should()
+                .HaveNoCycles(),
+
+            // Cross-module dependencies should only go through public APIs
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath("src/Modules/**/public/**")
+                .Should()
+                .DependOnFiles()
+                .InPath("src/Modules/**/public/**"),
+        };
+    }
+
+    public async Task<List<Violation>> ValidateAsync()
+    {
+        var violations = new List<Violation>();
+        foreach (var rule in BuildRules())
+        {
+            var result = await rule.CheckAsync();
+            violations.AddRange(result);
+        }
+        return violations;
+    }
+}
+
+/// <summary>
+/// Domain-Driven Design: Bounded contexts with domain logic isolation and minimal coupling.
+/// </summary>
+public class DomainDrivenDesignPreset
+{
+    private string _projectPath = null!;
+    private string _boundedContextsPattern = "src/{BoundedContext}/**";
+
+    public DomainDrivenDesignPreset WithProjectPath(string projectPath)
+    {
+        _projectPath = projectPath;
+        return this;
+    }
+
+    public DomainDrivenDesignPreset WithBoundedContextsPattern(string boundedContextsPattern)
+    {
+        _boundedContextsPattern = boundedContextsPattern;
+        return this;
+    }
+
+    public IEnumerable<Checkable> BuildRules()
+    {
+        if (string.IsNullOrEmpty(_projectPath))
+            throw new InvalidOperationException("Project path must be set via WithProjectPath()");
+
+        return new Checkable[]
+        {
+            // Domain models should only depend on other domain models
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath("src/**/Domain/**")
+                .ShouldNot()
+                .DependOnFiles()
+                .InPath("src/**/Application/**"),
+
+            // Application services can depend on domain but not on presentation
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath("src/**/Application/**")
+                .ShouldNot()
+                .DependOnFiles()
+                .InPath("src/**/Presentation/**"),
+
+            // Bounded contexts should not have circular dependencies
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath(_boundedContextsPattern)
+                .Should()
+                .HaveNoCycles(),
+        };
+    }
+
+    public async Task<List<Violation>> ValidateAsync()
+    {
+        var violations = new List<Violation>();
+        foreach (var rule in BuildRules())
+        {
+            var result = await rule.CheckAsync();
+            violations.AddRange(result);
+        }
+        return violations;
+    }
+}
+
+/// <summary>
+/// Event-Driven Architecture: Components communicate via events with minimal direct coupling.
+/// </summary>
+public class EventDrivenArchitecturePreset
+{
+    private string _projectPath = null!;
+    private string _eventBusPath = "src/EventBus/**";
+    private string _handlersPath = "src/Handlers/**";
+    private string _publishersPath = "src/Publishers/**";
+
+    public EventDrivenArchitecturePreset WithProjectPath(string projectPath)
+    {
+        _projectPath = projectPath;
+        return this;
+    }
+
+    public EventDrivenArchitecturePreset WithEventBusPath(string eventBusPath)
+    {
+        _eventBusPath = eventBusPath;
+        return this;
+    }
+
+    public EventDrivenArchitecturePreset WithHandlersPath(string handlersPath)
+    {
+        _handlersPath = handlersPath;
+        return this;
+    }
+
+    public EventDrivenArchitecturePreset WithPublishersPath(string publishersPath)
+    {
+        _publishersPath = publishersPath;
+        return this;
+    }
+
+    public IEnumerable<Checkable> BuildRules()
+    {
+        if (string.IsNullOrEmpty(_projectPath))
+            throw new InvalidOperationException("Project path must be set via WithProjectPath()");
+
+        return new Checkable[]
+        {
+            // Publishers should depend on EventBus but not on Handlers
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath(_publishersPath)
+                .Should()
+                .DependOnFiles()
+                .InPath(_eventBusPath),
+
+            // Handlers should depend on EventBus but not directly on Publishers
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath(_handlersPath)
+                .Should()
+                .DependOnFiles()
+                .InPath(_eventBusPath),
+
+            // Publishers and Handlers should not depend on each other
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath(_publishersPath)
+                .ShouldNot()
+                .DependOnFiles()
+                .InPath(_handlersPath),
+
+            // No circular dependencies in event flow
+            ArchUnit.ProjectFiles(_projectPath)
+                .InPath("src/**")
+                .Should()
+                .HaveNoCycles(),
         };
     }
 
