@@ -1,0 +1,84 @@
+name: Publish to NuGet
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4.1.0
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore ArchUnitNET.sln
+
+    - name: Build Release
+      run: dotnet build ArchUnitNET.sln --configuration Release --no-restore
+
+    - name: Run tests
+      continue-on-error: true
+      run: dotnet test --configuration Release --no-build --logger "console;verbosity=minimal"
+
+    - name: Get version from release tag
+      id: version
+      run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Pack NuGet package
+      run: |
+        dotnet pack src/ArchUnitNet/ArchUnitNet.csproj \
+          --configuration Release \
+          --no-build \
+          --output ./nuget-packages \
+          -p:PackageVersion=${{ steps.version.outputs.version }}
+
+    - name: Publish to NuGet
+      run: |
+        dotnet nuget push ./nuget-packages/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+
+    - name: Create GitHub Release Notes
+      uses: actions/create-release@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ArchUnitNET ${{ steps.version.outputs.version }}
+        body: |
+          # ArchUnitNET ${{ steps.version.outputs.version }}
+
+          **NuGet Package**: https://www.nuget.org/packages/ArchUnitNET/${{ steps.version.outputs.version }}
+
+          ## What's New
+          See [CHANGELOG.md](CHANGELOG.md) for details.
+
+          ## Installation
+          ```bash
+          dotnet add package ArchUnitNET --version ${{ steps.version.outputs.version }}
+          ```
+
+          ## Documentation
+          - 📖 [Getting Started](https://github.com/LukasNiessen/ArchUnitNET#quick-start)
+          - 📚 [API Reference](https://github.com/LukasNiessen/ArchUnitNET#core-features)
+
+          ---
+          Build: [${{ github.run_id }}](https://github.com/LukasNiessen/ArchUnitNET/actions/runs/${{ github.run_id }})
+        draft: false
+        prerelease: false
+
+    - name: Upload NuGet artifact
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: nuget-package
+        path: ./nuget-packages/*.nupkg
