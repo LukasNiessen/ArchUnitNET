@@ -1,162 +1,319 @@
-using Newtonsoft.Json.Linq;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ArchUnitNet.Configuration;
 
 /// <summary>
-/// Loads and parses architecture rules from JSON configuration files.
-/// Enables version-controlled, team-consistent rule definitions.
-/// </summary>
-public class RuleConfigurationLoader
-{
-    public async Task<RuleConfiguration> LoadFromFileAsync(string filePath)
-    {
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException($"Configuration file not found: {filePath}");
-
-        var content = await File.ReadAllTextAsync(filePath);
-        return LoadFromJson(content);
-    }
-
-    public RuleConfiguration LoadFromJson(string jsonContent)
-    {
-        try
-        {
-            var jObject = JObject.Parse(jsonContent);
-            return ParseConfiguration(jObject);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to parse rule configuration JSON", ex);
-        }
-    }
-
-    private RuleConfiguration ParseConfiguration(JObject jObject)
-    {
-        var config = new RuleConfiguration();
-
-        if (jObject["projectPath"] != null)
-            config.ProjectPath = jObject["projectPath"]!.Value<string>();
-
-        if (jObject["rules"] is JArray rulesArray)
-        {
-            foreach (var ruleToken in rulesArray)
-            {
-                if (ruleToken is JObject ruleObj)
-                {
-                    config.Rules.Add(ParseRule(ruleObj));
-                }
-            }
-        }
-
-        if (jObject["presets"] is JArray presetsArray)
-        {
-            foreach (var presetToken in presetsArray)
-            {
-                config.Presets.Add(presetToken.Value<string>() ?? "");
-            }
-        }
-
-        if (jObject["excludePatterns"] is JArray excludeArray)
-        {
-            foreach (var excludeToken in excludeArray)
-            {
-                config.ExcludePatterns.Add(excludeToken.Value<string>() ?? "");
-            }
-        }
-
-        if (jObject["severity"] != null)
-            config.Severity = jObject["severity"]!.Value<string>() ?? "error";
-
-        return config;
-    }
-
-    private RuleDefinition ParseRule(JObject ruleObj)
-    {
-        var rule = new RuleDefinition
-        {
-            Id = ruleObj["id"]?.Value<string>() ?? $"rule_{Guid.NewGuid()}",
-            Type = ruleObj["type"]?.Value<string>() ?? "FileDependency",
-            Description = ruleObj["description"]?.Value<string>() ?? "",
-            Enabled = ruleObj["enabled"]?.Value<bool>() ?? true,
-        };
-
-        if (ruleObj["source"] is JObject sourceObj)
-        {
-            rule.Source = ParsePattern(sourceObj);
-        }
-
-        if (ruleObj["target"] is JObject targetObj)
-        {
-            rule.Target = ParsePattern(targetObj);
-        }
-
-        if (ruleObj["action"] != null)
-            rule.Action = ruleObj["action"]!.Value<string>() ?? "forbid";
-
-        if (ruleObj["severity"] != null)
-            rule.Severity = ruleObj["severity"]!.Value<string>() ?? "error";
-
-        if (ruleObj["tags"] is JArray tagsArray)
-        {
-            rule.Tags = tagsArray.Select(t => t.Value<string>() ?? "").ToList();
-        }
-
-        return rule;
-    }
-
-    private PatternDefinition ParsePattern(JObject patternObj)
-    {
-        return new PatternDefinition
-        {
-            Path = patternObj["path"]?.Value<string>() ?? "",
-            Exclude = patternObj["exclude"]?.Value<string>() ?? "",
-            Type = patternObj["type"]?.Value<string>() ?? "glob",
-        };
-    }
-}
-
-/// <summary>
-/// Architecture rules configuration.
+/// Configuration for ArchUnit rules in JSON/YAML format.
+/// Enables team-wide architecture rule sharing via version control.
 /// </summary>
 public class RuleConfiguration
 {
-    public string? ProjectPath { get; set; }
-    public List<RuleDefinition> Rules { get; set; } = new();
-    public List<string> Presets { get; set; } = new();
-    public List<string> ExcludePatterns { get; set; } = new();
-    public string Severity { get; set; } = "error";
-}
+    /// <summary>
+    /// Rule configuration file version.
+    /// </summary>
+    [JsonPropertyName("version")]
+    public string Version { get; set; } = "1.0.0";
 
-/// <summary>
-/// Single rule definition from configuration.
-/// </summary>
-public class RuleDefinition
-{
-    public string Id { get; set; } = "";
-    public string Type { get; set; } = "FileDependency";
+    /// <summary>
+    /// Project name for documentation.
+    /// </summary>
+    [JsonPropertyName("projectName")]
+    public string ProjectName { get; set; } = "";
+
+    /// <summary>
+    /// Description of the architecture rules.
+    /// </summary>
+    [JsonPropertyName("description")]
     public string Description { get; set; } = "";
-    public bool Enabled { get; set; } = true;
-    public PatternDefinition? Source { get; set; }
-    public PatternDefinition? Target { get; set; }
-    public string Action { get; set; } = "forbid"; // forbid, require, cycleFree, acyclic
-    public string Severity { get; set; } = "error"; // error, warning, info
-    public List<string> Tags { get; set; } = new();
-    public string? OnViolation { get; set; } // fail, warn, log
 
-    public override string ToString()
+    /// <summary>
+    /// List of file-based rules.
+    /// </summary>
+    [JsonPropertyName("fileRules")]
+    public List<FileRuleConfig> FileRules { get; set; } = new();
+
+    /// <summary>
+    /// List of metrics-based rules.
+    /// </summary>
+    [JsonPropertyName("metricsRules")]
+    public List<MetricsRuleConfig> MetricsRules { get; set; } = new();
+
+    /// <summary>
+    /// List of slice-based rules.
+    /// </summary>
+    [JsonPropertyName("sliceRules")]
+    public List<SliceRuleConfig> SliceRules { get; set; } = new();
+
+    /// <summary>
+    /// Configuration metadata.
+    /// </summary>
+    [JsonPropertyName("metadata")]
+    public MetadataConfig Metadata { get; set; } = new();
+
+    /// <summary>
+    /// Load configuration from JSON file.
+    /// </summary>
+    public static async Task<RuleConfiguration?> LoadFromFileAsync(string filePath)
     {
-        return $"{Type}({Id}): {Description}";
+        if (!File.Exists(filePath))
+            return null;
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return JsonSerializer.Deserialize<RuleConfiguration>(json, options);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Save configuration to JSON file.
+    /// </summary>
+    public async Task SaveToFileAsync(string filePath)
+    {
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
+        var json = JsonSerializer.Serialize(this, options);
+        await File.WriteAllTextAsync(filePath, json);
+    }
+
+    /// <summary>
+    /// Serialize configuration to JSON string.
+    /// </summary>
+    public string ToJson()
+    {
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
+        return JsonSerializer.Serialize(this, options);
+    }
+
+    /// <summary>
+    /// Get configuration summary.
+    /// </summary>
+    public string GetSummary()
+    {
+        var lines = new List<string>
+        {
+            $"Project: {ProjectName}",
+            $"Description: {Description}",
+            $"File Rules: {FileRules.Count}",
+            $"Metrics Rules: {MetricsRules.Count}",
+            $"Slice Rules: {SliceRules.Count}"
+        };
+
+        return string.Join(Environment.NewLine, lines);
     }
 }
 
 /// <summary>
-/// Pattern definition for source/target paths.
+/// File-based rule configuration.
 /// </summary>
-public class PatternDefinition
+public class FileRuleConfig
 {
-    public string Path { get; set; } = "";
-    public string Exclude { get; set; } = "";
-    public string Type { get; set; } = "glob"; // glob, regex, exact
+    /// <summary>
+    /// Unique rule identifier.
+    /// </summary>
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    /// <summary>
+    /// Human-readable rule name.
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    /// <summary>
+    /// Rule description.
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = "";
+
+    /// <summary>
+    /// Path pattern to match source files.
+    /// </summary>
+    [JsonPropertyName("sourcePath")]
+    public string SourcePath { get; set; } = "";
+
+    /// <summary>
+    /// Type of rule (DependsOn, DoesNotDependOn, HasNoCycles, etc.).
+    /// </summary>
+    [JsonPropertyName("ruleType")]
+    public string RuleType { get; set; } = "";
+
+    /// <summary>
+    /// Target path pattern or condition.
+    /// </summary>
+    [JsonPropertyName("targetPath")]
+    public string? TargetPath { get; set; }
+
+    /// <summary>
+    /// Whether the rule is enabled.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Severity level (Error, Warning, Info).
+    /// </summary>
+    [JsonPropertyName("severity")]
+    public string Severity { get; set; } = "Error";
+}
+
+/// <summary>
+/// Metrics-based rule configuration.
+/// </summary>
+public class MetricsRuleConfig
+{
+    /// <summary>
+    /// Unique rule identifier.
+    /// </summary>
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    /// <summary>
+    /// Human-readable rule name.
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    /// <summary>
+    /// Rule description.
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = "";
+
+    /// <summary>
+    /// Metric type (LCOM96a, MethodCount, FieldCount, etc.).
+    /// </summary>
+    [JsonPropertyName("metricType")]
+    public string MetricType { get; set; } = "";
+
+    /// <summary>
+    /// Target value or threshold.
+    /// </summary>
+    [JsonPropertyName("threshold")]
+    public double Threshold { get; set; }
+
+    /// <summary>
+    /// Comparison operator (LessThan, GreaterThan, EqualTo, etc.).
+    /// </summary>
+    [JsonPropertyName("operator")]
+    public string Operator { get; set; } = "LessThan";
+
+    /// <summary>
+    /// Whether the rule is enabled.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Severity level (Error, Warning, Info).
+    /// </summary>
+    [JsonPropertyName("severity")]
+    public string Severity { get; set; } = "Error";
+}
+
+/// <summary>
+/// Slice-based rule configuration.
+/// </summary>
+public class SliceRuleConfig
+{
+    /// <summary>
+    /// Unique rule identifier.
+    /// </summary>
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    /// <summary>
+    /// Human-readable rule name.
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    /// <summary>
+    /// Rule description.
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = "";
+
+    /// <summary>
+    /// Path pattern for slice extraction (e.g., "src/{Slice}/**").
+    /// </summary>
+    [JsonPropertyName("slicePattern")]
+    public string SlicePattern { get; set; } = "";
+
+    /// <summary>
+    /// Type of validation (BeAcyclic, AdhereToDefinedSlices, FollowPattern).
+    /// </summary>
+    [JsonPropertyName("ruleType")]
+    public string RuleType { get; set; } = "";
+
+    /// <summary>
+    /// Optional dependency pattern (e.g., "UI -> Service -> Data").
+    /// </summary>
+    [JsonPropertyName("dependencyPattern")]
+    public string? DependencyPattern { get; set; }
+
+    /// <summary>
+    /// Whether the rule is enabled.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Severity level (Error, Warning, Info).
+    /// </summary>
+    [JsonPropertyName("severity")]
+    public string Severity { get; set; } = "Error";
+}
+
+/// <summary>
+/// Configuration metadata.
+/// </summary>
+public class MetadataConfig
+{
+    /// <summary>
+    /// Author of the configuration.
+    /// </summary>
+    [JsonPropertyName("author")]
+    public string? Author { get; set; }
+
+    /// <summary>
+    /// Last modified date.
+    /// </summary>
+    [JsonPropertyName("lastModified")]
+    public DateTime LastModified { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Tags for categorization.
+    /// </summary>
+    [JsonPropertyName("tags")]
+    public List<string> Tags { get; set; } = new();
+
+    /// <summary>
+    /// Documentation URL or reference.
+    /// </summary>
+    [JsonPropertyName("documentationUrl")]
+    public string? DocumentationUrl { get; set; }
+
+    /// <summary>
+    /// Custom key-value pairs for extensions.
+    /// </summary>
+    [JsonPropertyName("custom")]
+    public Dictionary<string, object> Custom { get; set; } = new();
 }
 
 /// <summary>
@@ -165,70 +322,67 @@ public class PatternDefinition
 public static class RuleConfigurationExtensions
 {
     /// <summary>
-    /// Load rules from JSON configuration file.
+    /// Get enabled file rules.
     /// </summary>
-    public static async Task<RuleConfiguration> LoadArchitectureRulesAsync(string configPath)
+    public static IEnumerable<FileRuleConfig> GetEnabledFileRules(this RuleConfiguration config)
     {
-        var loader = new RuleConfigurationLoader();
-        return await loader.LoadFromFileAsync(configPath);
+        return config.FileRules.Where(r => r.Enabled);
     }
 
     /// <summary>
-    /// Get rules by tag.
+    /// Get enabled metrics rules.
     /// </summary>
-    public static List<RuleDefinition> GetRulesByTag(this RuleConfiguration config, string tag)
+    public static IEnumerable<MetricsRuleConfig> GetEnabledMetricsRules(this RuleConfiguration config)
     {
-        return config.Rules
-            .Where(r => r.Enabled && r.Tags.Contains(tag))
-            .ToList();
+        return config.MetricsRules.Where(r => r.Enabled);
     }
 
     /// <summary>
-    /// Get rules by type.
+    /// Get enabled slice rules.
     /// </summary>
-    public static List<RuleDefinition> GetRulesByType(this RuleConfiguration config, string type)
+    public static IEnumerable<SliceRuleConfig> GetEnabledSliceRules(this RuleConfiguration config)
     {
-        return config.Rules
-            .Where(r => r.Enabled && r.Type.Equals(type, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        return config.SliceRules.Where(r => r.Enabled);
     }
 
     /// <summary>
-    /// Get all enabled rules.
+    /// Get rules by severity level.
     /// </summary>
-    public static List<RuleDefinition> GetEnabledRules(this RuleConfiguration config)
+    public static IEnumerable<FileRuleConfig> GetFileRulesBySeverity(this RuleConfiguration config, string severity)
     {
-        return config.Rules.Where(r => r.Enabled).ToList();
+        return config.FileRules.Where(r => r.Severity == severity);
     }
 
     /// <summary>
-    /// Validate configuration structure.
+    /// Get total rule count.
     /// </summary>
-    public static List<string> Validate(this RuleConfiguration config)
+    public static int GetTotalRuleCount(this RuleConfiguration config)
     {
-        var errors = new List<string>();
+        return config.FileRules.Count + config.MetricsRules.Count + config.SliceRules.Count;
+    }
 
-        if (string.IsNullOrEmpty(config.ProjectPath))
-            errors.Add("ProjectPath is required");
-
-        if (!config.Rules.Any() && !config.Presets.Any())
-            errors.Add("At least one rule or preset must be defined");
-
-        foreach (var rule in config.Rules)
+    /// <summary>
+    /// Merge two configurations (later config overrides earlier).
+    /// </summary>
+    public static RuleConfiguration Merge(this RuleConfiguration config, RuleConfiguration other)
+    {
+        var merged = new RuleConfiguration
         {
-            if (string.IsNullOrEmpty(rule.Id))
-                errors.Add("Rule must have an ID");
+            Version = other.Version,
+            ProjectName = other.ProjectName ?? config.ProjectName,
+            Description = other.Description ?? config.Description,
+            Metadata = other.Metadata
+        };
 
-            if (rule.Source == null || string.IsNullOrEmpty(rule.Source.Path))
-                errors.Add($"Rule {rule.Id} must define source path");
+        merged.FileRules.AddRange(config.FileRules);
+        merged.FileRules.AddRange(other.FileRules);
 
-            if (rule.Action == "forbid" || rule.Action == "require")
-            {
-                if (rule.Target == null || string.IsNullOrEmpty(rule.Target.Path))
-                    errors.Add($"Rule {rule.Id} requires target path for action '{rule.Action}'");
-            }
-        }
+        merged.MetricsRules.AddRange(config.MetricsRules);
+        merged.MetricsRules.AddRange(other.MetricsRules);
 
-        return errors;
+        merged.SliceRules.AddRange(config.SliceRules);
+        merged.SliceRules.AddRange(other.SliceRules);
+
+        return merged;
     }
 }

@@ -42,7 +42,18 @@ public static class ArchUnit
     /// Create a slice-based architecture rule.
     /// Entry point for defining and validating logical slices.
     /// </summary>
-    public static SliceConditionBuilder ProjectSlices() => new SliceConditionBuilder();
+    public static SliceConditionBuilder ProjectSlices(string? projectPath = null)
+    {
+        var builder = new SliceConditionBuilder();
+
+        if (!string.IsNullOrEmpty(projectPath))
+        {
+            var graph = _extractor.ExtractGraphAsync(projectPath).GetAwaiter().GetResult();
+            builder.WithEdges(graph.Edges);
+        }
+
+        return builder;
+    }
 
     /// <summary>
     /// Create a graph builder for visualizing dependencies.

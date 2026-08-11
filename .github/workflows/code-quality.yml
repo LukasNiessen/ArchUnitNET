@@ -7,34 +7,133 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  analyze:
+  lint-and-analyze:
     runs-on: ubuntu-latest
+    name: Linting & Code Analysis
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: '8.0.x'
 
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Run StyleCop Analyzers (strict)
+      run: |
+        dotnet build -c Release --no-restore \
+          /p:EnforceCodeStyleInBuild=true \
+          /p:GenerateDocumentationFile=true \
+          /p:AnalysisSeverity=warning
+
     - name: Run Roslyn Analyzers
       run: |
-        dotnet restore
-        dotnet build -c Release --no-restore /p:EnableNETAnalyzers=true /p:AnalysisSeverity=warning
+        dotnet build -c Release --no-restore \
+          /p:EnableNETAnalyzers=true \
+          /p:AnalysisLevel=latest
 
-    - name: Check formatting
+    - name: Check code formatting
       run: dotnet format --verify-no-changes --verbosity diagnostic
       continue-on-error: true
 
-    - name: Run security audit
-      run: dotnet list package --vulnerable
+    - name: Run security code analyzers
+      run: |
+        dotnet build -c Release --no-restore \
+          /p:EnableSecurityCriticalCodeAnalyzer=true
       continue-on-error: true
 
-    - name: SonarCloud Scan
+    - name: Verify no compiler warnings
+      run: |
+        dotnet build -c Release --no-restore /p:TreatWarningsAsErrors=true
+      continue-on-error: true
+
+  security-audit:
+    runs-on: ubuntu-latest
+    name: Security Audit
+
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4.1.0
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Check for vulnerable NuGet packages
+      run: |
+        dotnet restore
+        dotnet list package --vulnerable
+      continue-on-error: true
+
+    - name: NuGet audit
+      run: dotnet list package --outdated
+      continue-on-error: true
+
+    - name: Run security analyzers
+      run: dotnet build -c Release /p:EnableSecurityAnalyzers=true
+      continue-on-error: true
+
+  code-coverage:
+    runs-on: ubuntu-latest
+    name: Code Coverage
+
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4.1.0
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build -c Release --no-restore
+
+    - name: Run tests with coverage
+      run: |
+        dotnet test -c Release --no-build \
+          --collect:"XPlat Code Coverage" \
+          --logger "console;verbosity=minimal"
+      continue-on-error: true
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        files: ./coverage.cobertura.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        verbose: true
+
+  sonar-analysis:
+    runs-on: ubuntu-latest
+    name: SonarCloud Analysis
+
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4.1.0
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Analyze with SonarCloud
       uses: SonarSource/sonarcloud-github-action@master
+      if: vars.SONAR_ENABLED == 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -42,27 +141,58 @@ jobs:
 
   dependency-check:
     runs-on: ubuntu-latest
+    name: Dependency & Package Analysis
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.1.0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: '8.0.x'
 
-    - name: List packages
-      run: |
-        dotnet restore
-        dotnet list package
+    - name: List all packages
+      run: dotnet list package
+      continue-on-error: true
 
     - name: Check for outdated packages
       run: dotnet outdated
       continue-on-error: true
 
-    - name: Dependency vulnerability scan
+    - name: Dependency vulnerability check
       uses: dependency-check/Dependency-Check_Action@main
+      if: always()
       with:
         path: '.'
         format: 'JSON'
+        args: >
+          -l
       continue-on-error: true
+
+    - name: Upload dependency report
+      uses: actions/upload-artifact@v4.3.1
+      if: always()
+      with:
+        name: dependency-check-report
+        path: ./reports/
+        if-no-files-found: ignore
+
+  quality-summary:
+    runs-on: ubuntu-latest
+    name: Quality Summary
+    needs: [ lint-and-analyze, security-audit, code-coverage, sonar-analysis ]
+    if: always()
+
+    steps:
+    - name: Check job results
+      run: |
+        echo "=== Code Quality Summary ==="
+        echo "Linting & Analysis: ${{ needs.lint-and-analyze.result }}"
+        echo "Security Audit: ${{ needs.security-audit.result }}"
+        echo "Code Coverage: ${{ needs.code-coverage.result }}"
+        echo "SonarCloud: ${{ needs.sonar-analysis.result }}"
+
+        if [[ "${{ needs.lint-and-analyze.result }}" == "failure" ]]; then
+          echo "⚠️  Code quality checks failed - review linting errors"
+          exit 1
+        fi
