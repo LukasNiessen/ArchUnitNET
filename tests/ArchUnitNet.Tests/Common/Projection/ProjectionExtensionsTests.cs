@@ -2,7 +2,6 @@ using ArchUnitNet.Common.Extraction;
 using ArchUnitNet.Common.Projection;
 using ArchUnitNet.Common.Util;
 using Xunit;
-using Graph = ArchUnitNet.Common.Extraction.Graph;
 
 namespace ArchUnitNet.Tests.Common.Projection;
 
@@ -16,7 +15,7 @@ public class ProjectionExtensionsTests
         {
             new Edge("src/A.cs", "src/B.cs", false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Act
         var projected = graph.ProjectEdges(MapFunctions.Identity);
@@ -36,7 +35,7 @@ public class ProjectionExtensionsTests
             new Edge("A", "A", false, new[] { ImportKind.Using }), // Self-edge
             new Edge("C", "D", false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Act
         var projected = graph.ProjectEdges(MapFunctions.PerEdge);
@@ -54,7 +53,7 @@ public class ProjectionExtensionsTests
             new Edge("A", "B", false, new[] { ImportKind.Using }),
             new Edge("B", "C", false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Act
         var projected = graph.ProjectIdentity();
@@ -72,7 +71,7 @@ public class ProjectionExtensionsTests
             new Edge("A", "B", false, new[] { ImportKind.Using }),
             new Edge("A", "A", false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Act
         var projected = graph.ProjectPerEdge();
@@ -90,7 +89,7 @@ public class ProjectionExtensionsTests
             new Edge("A", "B", false, new[] { ImportKind.Using }),
             new Edge("A", "System", true, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Act
         var projected = graph.ProjectInternalOnly();
@@ -109,7 +108,7 @@ public class ProjectionExtensionsTests
             new Edge("A", "B", false, new[] { ImportKind.Using }),
             new Edge("A", "System", true, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Act
         var projected = graph.ProjectExternalOnly();
@@ -127,7 +126,7 @@ public class ProjectionExtensionsTests
         {
             new Edge("src/A.cs", "src/B.cs", false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Custom map function: convert file paths to folder names
         ProjectedEdge? CustomMapper(Edge edge)
@@ -171,7 +170,7 @@ public class ProjectionExtensionsTests
             new Edge("A", "A", false, new[] { ImportKind.Using }),
             new Edge("A", "System", true, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
 
         // Act
         var combined = MapFunctions.Compose(
