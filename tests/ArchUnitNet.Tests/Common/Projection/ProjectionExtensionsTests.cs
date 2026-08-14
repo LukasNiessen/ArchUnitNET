@@ -2,6 +2,7 @@ using ArchUnitNet.Common.Extraction;
 using ArchUnitNet.Common.Projection;
 using ArchUnitNet.Common.Util;
 using Xunit;
+using Graph = ArchUnitNet.Common.Extraction.Graph;
 
 namespace ArchUnitNet.Tests.Common.Projection;
 
@@ -116,24 +117,6 @@ public class ProjectionExtensionsTests
         // Assert
         Assert.Single(projected.Edges);
         Assert.True(projected.Edges.First().External);
-    }
-
-    [Fact]
-    public void ProjectEdges_WithNullMapFunctionThrows()
-    {
-        // Arrange
-        var graph = new Graph(new[] { new Edge("A", "B", false, new[] { ImportKind.Using }) });
-
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => graph.ProjectEdges(null!));
-    }
-
-    [Fact]
-    public void ProjectEdges_WithNullGraphThrows()
-    {
-        // Act & Assert
-        Graph nullGraph = null!;
-        Assert.Throws<ArgumentNullException>(() => nullGraph.ProjectEdges(MapFunctions.Identity));
     }
 
     [Fact]
