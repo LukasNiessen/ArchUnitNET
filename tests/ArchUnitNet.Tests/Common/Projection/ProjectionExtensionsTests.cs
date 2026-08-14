@@ -149,7 +149,7 @@ public class ProjectionExtensionsTests
     {
         // Arrange
         var edge = new Edge("A", "B", false, new[] { ImportKind.Using });
-        var graph = new Graph(new[] { edge });
+        var graph = new ArchUnitNet.Common.Extraction.Graph(new[] { edge });
 
         // Act
         var projected = graph.ProjectEdges(MapFunctions.Identity);
