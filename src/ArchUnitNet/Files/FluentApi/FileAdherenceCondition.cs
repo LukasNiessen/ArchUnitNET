@@ -16,13 +16,13 @@ public class FileAdherenceCondition : Checkable
     private readonly Graph _graph;
     private readonly PatternMatcher _sourceMatcher;
     private readonly bool _negated;
-    private readonly Func<FileInfo, bool> _predicate;
+    private readonly Func<Common.FileInfo, bool> _predicate;
     private readonly string _message;
 
     public FileAdherenceCondition(
         Graph graph,
         PatternMatcher sourceMatcher,
-        Func<FileInfo, bool> predicate,
+        Func<Common.FileInfo, bool> predicate,
         string message,
         bool negated)
     {
@@ -49,7 +49,7 @@ public class FileAdherenceCondition : Checkable
         {
             try
             {
-                var fileInfo = FileInfo.FromPath(sourceFile);
+                var fileInfo = Common.FileInfo.FromPath(sourceFile);
                 var predicateResult = _predicate(fileInfo);
 
                 bool violates = predicateResult;
