@@ -14,7 +14,7 @@ namespace ArchUnitNet.Tests.Testing;
 public class CrossFrameworkConsistencyTests
 {
     [Fact]
-    public void ArchAssert_Passes_And_AssertHelper_PassesAsync_SameViolations()
+    public async Task ArchAssert_Passes_And_AssertHelper_PassesAsync_SameViolations()
     {
         // Synchronous path (ArchAssert) and async path (AssertHelper)
         // should catch the same violations
@@ -25,8 +25,8 @@ public class CrossFrameworkConsistencyTests
             ArchAssert.Passes(rule));
 
         // AssertHelper throws asynchronously
-        var asyncException = Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
-            AssertHelper.PassesAsync(rule)).Result;
+        var asyncException = await Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
+            AssertHelper.PassesAsync(rule));
 
         // Both should contain the same violation information
         Assert.Contains("Violation 1", syncException.Message);
@@ -36,7 +36,7 @@ public class CrossFrameworkConsistencyTests
     }
 
     [Fact]
-    public void AllPaths_SameRule_SameErrorMessage()
+    public async Task AllPaths_SameRule_SameErrorMessage()
     {
         // All three paths (ArchAssert, AssertHelper, adapters)
         // should produce identical error formatting for the same violations
@@ -47,8 +47,8 @@ public class CrossFrameworkConsistencyTests
             ArchAssert.Passes(rule));
 
         // AssertHelper async path
-        var helperEx = Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
-            AssertHelper.PassesAsync(rule)).Result;
+        var helperEx = await Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
+            AssertHelper.PassesAsync(rule));
 
         // Both should have identical violation information
         Assert.Contains("violation(s) found", archAssertEx.Message);
@@ -58,7 +58,7 @@ public class CrossFrameworkConsistencyTests
     }
 
     [Fact]
-    public void ArchAssert_Fails_And_AssertHelper_FailsAsync_ConsistentBehavior()
+    public async Task ArchAssert_Fails_And_AssertHelper_FailsAsync_ConsistentBehavior()
     {
         // Test the Fails() / FailsAsync() pair
         var ruleWithViolations = new FailingRule("Error");
@@ -66,31 +66,31 @@ public class CrossFrameworkConsistencyTests
 
         // Both should succeed with violations
         ArchAssert.Fails(ruleWithViolations);
-        AssertHelper.FailsAsync(ruleWithViolations).Result; // Should not throw
+        await AssertHelper.FailsAsync(ruleWithViolations);
 
         // Both should fail without violations
         Assert.Throws<AssertHelper.AssertException>(() =>
             ArchAssert.Fails(ruleWithoutViolations));
 
-        Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
-            AssertHelper.FailsAsync(ruleWithoutViolations)).Result;
+        await Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
+            AssertHelper.FailsAsync(ruleWithoutViolations));
     }
 
     [Fact]
-    public void ArchAssert_FailsWith_And_AssertHelper_FailsWithAsync_SameValidation()
+    public async Task ArchAssert_FailsWith_And_AssertHelper_FailsWithAsync_SameValidation()
     {
         var rule = new FailingRule("Error 1", "Error 2", "Error 3");
 
         // Both should pass with exact count
         ArchAssert.FailsWith(rule, 3);
-        AssertHelper.FailsWithAsync(rule, 3).Result;
+        await AssertHelper.FailsWithAsync(rule, 3);
 
         // Both should fail with wrong count and include violation details
         var syncEx = Assert.Throws<AssertHelper.AssertException>(() =>
             ArchAssert.FailsWith(rule, 2));
 
-        var asyncEx = Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
-            AssertHelper.FailsWithAsync(rule, 2)).Result;
+        var asyncEx = await Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
+            AssertHelper.FailsWithAsync(rule, 2));
 
         // Both error messages should contain the same information
         Assert.Contains("Expected 2 violation(s) but found 3", syncEx.Message);
@@ -100,25 +100,18 @@ public class CrossFrameworkConsistencyTests
     }
 
     [Fact]
-    public void Adapters_Use_AssertHelper_Internally()
+    public async Task AssertHelper_PassesAsync_And_FailsAsync_UseResultFactory()
     {
-        // xUnit adapter wraps AssertHelper
-        // If AssertHelper uses ResultFactory, adapters automatically get
-        // the unified formatting without needing changes
+        // Test that AssertHelper methods use ResultFactory for consistent formatting
         var rule = new FailingRule("Adapter test error");
 
-        // xUnit adapter's PassesAsync internally calls AssertHelper.PassesAsync
-        // which now uses ResultFactory
-        var adapterEx = Assert.ThrowsAsync<Xunit.Sdk.XunitException>(() =>
-            rule.PassesAsync()).Result; // xUnit extension method
+        // AssertHelper should produce detailed formatted violations
+        var helperEx = await Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
+            AssertHelper.PassesAsync(rule));
 
-        // AssertHelper should produce the same violation details
-        var helperEx = Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
-            AssertHelper.PassesAsync(rule)).Result;
-
-        // Both should reference the same violation
-        Assert.Contains("Adapter test error", adapterEx.Message);
+        // Both should reference the same violation with detailed formatting
         Assert.Contains("Adapter test error", helperEx.Message);
+        Assert.Contains("violation(s) found", helperEx.Message);
     }
 
     [Fact]
