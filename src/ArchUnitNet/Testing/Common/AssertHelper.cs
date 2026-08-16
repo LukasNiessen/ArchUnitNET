@@ -23,6 +23,7 @@ public static class AssertHelper
     /// <summary>
     /// Assert that a rule passes (no violations).
     /// Throws AssertException if violations found.
+    /// Uses ResultFactory for consistent formatting across all frameworks.
     /// </summary>
     public static async Task PassesAsync(Checkable rule, CheckOptions? options = null, string? message = null)
     {
@@ -31,10 +32,14 @@ public static class AssertHelper
         if (violations.Count == 0)
             return;
 
-        var header = message ?? "Architecture rule failed";
-        var report = ViolationFormatter.FormatReport(violations, message, colored: false);
+        // Use ResultFactory for consistent violation formatting
+        var result = ResultFactory.CreateFromViolations(
+            violations,
+            ruleName: message ?? "Architecture Rule",
+            colored: false,
+            style: FormatStyle.Detailed);
 
-        throw new AssertException($"{header}:\n{report}");
+        throw new AssertException(result.FormattedMessage);
     }
 
     /// <summary>
@@ -54,6 +59,7 @@ public static class AssertHelper
 
     /// <summary>
     /// Assert that a rule fails with exactly N violations.
+    /// Uses ResultFactory for detailed violation formatting in error messages.
     /// </summary>
     public static async Task FailsWithAsync(Checkable rule, int expectedCount, CheckOptions? options = null, string? message = null)
     {
@@ -62,12 +68,20 @@ public static class AssertHelper
         if (violations.Count == expectedCount)
             return;
 
-        var msg = message ?? $"Expected {expectedCount} violation(s) but found {violations.Count}";
-        throw new AssertException(msg);
+        // Format violations for detailed error message
+        var result = ResultFactory.CreateFromViolations(
+            violations,
+            ruleName: message ?? "Architecture Rule",
+            colored: false,
+            style: FormatStyle.Detailed);
+
+        var errorMsg = $"Expected {expectedCount} violation(s) but found {violations.Count}\n\n{result.FormattedMessage}";
+        throw new AssertException(errorMsg);
     }
 
     /// <summary>
     /// Assert that a rule produces violations containing specific text.
+    /// Uses ResultFactory for formatted violation output in error messages.
     /// </summary>
     public static async Task FailsWithMessageContainingAsync(
         Checkable rule,
@@ -85,8 +99,15 @@ public static class AssertHelper
         if (allMessages.Contains(expectedText, StringComparison.OrdinalIgnoreCase))
             return;
 
-        var msg = message ?? $"Expected violation message to contain '{expectedText}'";
-        throw new AssertException($"{msg}\n\nActual violations:\n{allMessages}");
+        // Format violations for detailed error message
+        var result = ResultFactory.CreateFromViolations(
+            violations,
+            ruleName: message ?? "Architecture Rule",
+            colored: false,
+            style: FormatStyle.Detailed);
+
+        var errorMsg = $"Expected violation message to contain '{expectedText}'\n\n{result.FormattedMessage}";
+        throw new AssertException(errorMsg);
     }
 
     /// <summary>
