@@ -9,7 +9,8 @@ namespace ArchUnitNet.Files.FluentApi;
 
 /// <summary>
 /// Defines file dependency rule: which files should (not) depend on which.
-/// Example: .DependOnFiles().InPath("src/Models/**")
+/// Supports chainable target selectors with multiple conditions.
+/// Example: .DependOnFiles().InPath("src/Models/**").And().HaveName("*.cs")
 /// </summary>
 public class FileDependencyCondition : Checkable
 {
@@ -17,39 +18,78 @@ public class FileDependencyCondition : Checkable
     private readonly PatternMatcher _sourceMatcher;
     private readonly string _sourcePattern;
     private readonly bool _negated;
-    private PatternMatcher? _targetMatcher;
+    private readonly TargetFileSelector _targetSelector;
 
     public FileDependencyCondition(Graph graph, PatternMatcher sourceMatcher, bool negated, string sourcePattern = "")
     {
-        _graph = graph;
-        _sourceMatcher = sourceMatcher;
+        _graph = graph ?? throw new ArgumentNullException(nameof(graph));
+        _sourceMatcher = sourceMatcher ?? throw new ArgumentNullException(nameof(sourceMatcher));
         _sourcePattern = sourcePattern;
         _negated = negated;
+        _targetSelector = new TargetFileSelector();
     }
 
+    /// <summary>
+    /// Select target files by path pattern.
+    /// Example: .InPath("src/Models/**")
+    /// </summary>
     public FileDependencyCondition InPath(string pattern)
     {
-        _targetMatcher = new PatternMatcher(pattern);
+        _targetSelector.InPath(pattern);
         return this;
     }
 
+    /// <summary>
+    /// Select target files by folder.
+    /// Example: .InFolder("src/Models")
+    /// </summary>
     public FileDependencyCondition InFolder(string folder)
     {
-        var pattern = $"{folder}/**";
-        return InPath(pattern);
+        _targetSelector.InFolder(folder);
+        return this;
+    }
+
+    /// <summary>
+    /// Select target files by name pattern.
+    /// Example: .HaveName("*.Service.cs")
+    /// </summary>
+    public FileDependencyCondition HaveName(string namePattern)
+    {
+        _targetSelector.HaveName(namePattern);
+        return this;
+    }
+
+    /// <summary>
+    /// Exclude target files matching an exception pattern.
+    /// Example: .Except("**/Legacy/**")
+    /// </summary>
+    public FileDependencyCondition Except(string exceptionPattern)
+    {
+        _targetSelector.Except(exceptionPattern);
+        return this;
+    }
+
+    /// <summary>
+    /// Syntax sugar for chaining selectors.
+    /// Example: .InFolder("src/Models").And().HaveName("*.cs")
+    /// </summary>
+    public FileDependencyCondition And()
+    {
+        _targetSelector.And();
+        return this;
     }
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
-        if (_targetMatcher == null)
-            throw new InvalidOperationException("Must call InPath() or InFolder() first");
+        if (!_targetSelector.HasSelectors)
+            throw new InvalidOperationException("Must define target selector with InPath(), InFolder(), or HaveName()");
 
         options ??= new CheckOptions();
 
         var violations = new List<Violation>();
         var projectedEdges = ProjectEdges.GroupBySourceAndTarget(_graph);
 
-        // Empty-test guard: fail if no files match the pattern (unless explicitly allowed)
+        // Empty-test guard: fail if no files match the source pattern (unless explicitly allowed)
         var matchingEdges = projectedEdges
             .Where(e => _sourceMatcher.Matches(e.Source))
             .ToList();
@@ -65,7 +105,7 @@ public class FileDependencyCondition : Checkable
 
         foreach (var edge in matchingEdges)
         {
-            bool targetMatches = _targetMatcher.Matches(edge.Target);
+            bool targetMatches = _targetSelector.Matches(edge.Target);
 
             bool violates = targetMatches;
             if (_negated)
@@ -74,8 +114,8 @@ public class FileDependencyCondition : Checkable
             if (violates)
             {
                 var reason = _negated
-                    ? "forbidden dependency"
-                    : "expected dependency not found";
+                    ? $"forbidden dependency on {_targetSelector.GetDescription()}"
+                    : $"expected dependency on {_targetSelector.GetDescription()} not found";
                 violations.Add(ViolatingFileDependency.Create(edge, reason));
             }
         }
