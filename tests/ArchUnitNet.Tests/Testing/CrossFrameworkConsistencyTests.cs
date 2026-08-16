@@ -165,7 +165,7 @@ public class CrossFrameworkConsistencyTests
     }
 
     [Fact]
-    public void NoColors_AcrossAllPaths()
+    public async Task NoColors_AcrossAllPaths()
     {
         var rule = new FailingRule("Error");
 
@@ -175,8 +175,8 @@ public class CrossFrameworkConsistencyTests
         Assert.DoesNotContain("[31m", archAssertEx.Message); // No red codes
 
         // AssertHelper should not have colors
-        var helperEx = Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
-            AssertHelper.PassesAsync(rule)).Result;
+        var helperEx = await Assert.ThrowsAsync<AssertHelper.AssertException>(() =>
+            AssertHelper.PassesAsync(rule));
         Assert.DoesNotContain("[31m", helperEx.Message); // No red codes
 
         // ResultFactory with colored:false should not have codes
