@@ -8,45 +8,67 @@ namespace ArchUnitNet.Files.FluentApi;
 
 /// <summary>
 /// Defines rules for external (NuGet) module dependencies.
-/// Example: files should depend on Newtonsoft.Json but not on legacy packages.
+/// Supports repeatable .Matching() calls for OR logic between patterns.
+/// Example: .Should().DependOnExternalModules().Matching("Newtonsoft.*").Or().Matching("Json.*")
 /// </summary>
 public class ExternalDependencyCondition : Checkable
 {
     private readonly Graph _graph;
     private readonly PatternMatcher _sourceMatcher;
     private readonly bool _negated;
-    private PatternMatcher? _targetMatcher;
+    private readonly List<PatternMatcher> _targetMatchers = new();
 
     public ExternalDependencyCondition(Graph graph, PatternMatcher sourceMatcher, bool negated)
     {
-        _graph = graph;
-        _sourceMatcher = sourceMatcher;
+        _graph = graph ?? throw new ArgumentNullException(nameof(graph));
+        _sourceMatcher = sourceMatcher ?? throw new ArgumentNullException(nameof(sourceMatcher));
         _negated = negated;
     }
 
     /// <summary>
-    /// Match external modules by name pattern (e.g., "Newtonsoft.*", "Microsoft.Extensions.*")
+    /// Match external modules by name pattern.
+    /// Can be called multiple times - patterns combined with OR logic.
+    /// Example: .Matching("Newtonsoft.*") or .Matching("Json*")
     /// </summary>
     public ExternalDependencyCondition Matching(string modulePattern)
     {
-        _targetMatcher = new PatternMatcher(modulePattern);
+        if (string.IsNullOrWhiteSpace(modulePattern))
+            throw new ArgumentException("Module pattern cannot be null or empty", nameof(modulePattern));
+
+        _targetMatchers.Add(new PatternMatcher(modulePattern));
         return this;
     }
 
     /// <summary>
     /// Match specific external module by exact name.
+    /// Can be called multiple times for OR logic.
+    /// Example: .Named("Newtonsoft.Json") or .Named("System.Json")
     /// </summary>
     public ExternalDependencyCondition Named(string moduleName)
     {
-        _targetMatcher = new PatternMatcher(moduleName);
+        if (string.IsNullOrWhiteSpace(moduleName))
+            throw new ArgumentException("Module name cannot be null or empty", nameof(moduleName));
+
+        _targetMatchers.Add(new PatternMatcher(moduleName));
+        return this;
+    }
+
+    /// <summary>
+    /// Syntax sugar for chaining multiple Matching() calls with OR logic.
+    /// Example: .Matching("Newtonsoft.*").Or().Matching("Json.*")
+    /// </summary>
+    public ExternalDependencyCondition Or()
+    {
+        // Returns self for method chaining
         return this;
     }
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
-        if (_targetMatcher == null)
-            throw new InvalidOperationException("Must call Matching() or Named() first");
+        if (_targetMatchers.Count == 0)
+            throw new InvalidOperationException("Must call Matching() or Named() at least once");
 
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
 
         // Filter for external dependencies only
@@ -57,10 +79,11 @@ public class ExternalDependencyCondition : Checkable
         foreach (var edge in externalEdges)
         {
             bool sourceMatches = _sourceMatcher.Matches(edge.Source);
-            bool targetMatches = _targetMatcher.Matches(edge.Target);
-
             if (!sourceMatches)
                 continue;
+
+            // Check if target matches ANY of the patterns (OR logic)
+            bool targetMatches = _targetMatchers.Any(m => m.Matches(edge.Target));
 
             bool violates = targetMatches;
             if (_negated)
@@ -76,5 +99,14 @@ public class ExternalDependencyCondition : Checkable
         }
 
         return await Task.FromResult(violations.AsReadOnly());
+    }
+
+    /// <summary>
+    /// Get a readable description of the matchers for error messages.
+    /// </summary>
+    public string GetDescription()
+    {
+        var patterns = _targetMatchers.Select((m, i) => $"pattern {i + 1}").ToList();
+        return string.Join(" or ", patterns);
     }
 }
