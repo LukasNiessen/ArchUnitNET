@@ -158,11 +158,7 @@ public class AdhereToSlicesCondition : ISliceCondition, Checkable
             // Empty-test guard: fail if no edges unless explicitly allowed
             if (!options.AllowEmptyTests)
             {
-                violations.Add(new ViolatingSliceEdge(
-                    _slicePattern,
-                    "",
-                    $"No slices matched the pattern - this is likely a typo. " +
-                    "If intentional, use CheckOptions with AllowEmptyTests = true"));
+                violations.Add(ViolatingSliceEdge.CreateEmptyTestViolation(_slicePattern));
             }
             return await Task.FromResult(violations.AsReadOnly());
         }
@@ -327,11 +323,7 @@ public class DependencyPatternCondition : ISliceCondition, Checkable
             // Empty-test guard: fail if no edges unless explicitly allowed
             if (!options.AllowEmptyTests)
             {
-                violations.Add(new ViolatingSliceEdge(
-                    _slicePattern,
-                    "",
-                    $"No slices matched the pattern - this is likely a typo. " +
-                    "If intentional, use CheckOptions with AllowEmptyTests = true"));
+                violations.Add(ViolatingSliceEdge.CreateEmptyTestViolation(_slicePattern));
             }
             return await Task.FromResult(violations.AsReadOnly());
         }
@@ -403,11 +395,7 @@ public class NoCyclicSlicesCondition : ISliceCondition, Checkable
             // Empty-test guard: fail if no edges unless explicitly allowed
             if (!options.AllowEmptyTests)
             {
-                violations.Add(new ViolatingSliceEdge(
-                    _slicePattern,
-                    "",
-                    $"No slices matched the pattern - this is likely a typo. " +
-                    "If intentional, use CheckOptions with AllowEmptyTests = true"));
+                violations.Add(ViolatingSliceEdge.CreateEmptyTestViolation(_slicePattern));
             }
             return await Task.FromResult(violations.AsReadOnly());
         }

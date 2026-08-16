@@ -52,4 +52,14 @@ public record ViolatingSliceEdge(
         var message = $"Cyclic slice dependency detected: '{slice1}' ↔ '{slice2}' (via {path1} ↔ {path2})";
         return new ViolatingSliceEdge(slice1, slice2, path1, path2, message);
     }
+
+    /// <summary>
+    /// Create a violation when no slices match the pattern (empty-test guard).
+    /// </summary>
+    public static ViolatingSliceEdge CreateEmptyTestViolation(string pattern)
+    {
+        var message = $"No slices matched the pattern '{pattern}' - this is likely a typo. " +
+                      "If intentional, use CheckOptions with AllowEmptyTests = true";
+        return new ViolatingSliceEdge("", "", "", "", message);
+    }
 }
