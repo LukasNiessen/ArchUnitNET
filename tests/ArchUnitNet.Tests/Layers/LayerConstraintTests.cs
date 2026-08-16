@@ -202,6 +202,7 @@ public class LayerConstraintTests
         // Assert - Blocklist should be evaluated first
         Assert.NotEmpty(violations);
         var violation = violations[0] as ViolatingLayerDependency;
+        Assert.NotNull(violation);
         Assert.Equal("Forbidden", violation.Reason);
     }
 
