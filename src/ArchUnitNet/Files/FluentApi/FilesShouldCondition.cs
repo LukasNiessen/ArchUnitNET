@@ -54,4 +54,31 @@ public class FilesShouldCondition
     {
         return new CustomPredicateCondition(_graph, _fileMatcher, negated: _negated).AdhereTo(predicate);
     }
+
+    /// <summary>
+    /// Check file names match a pattern (only the filename, not full path).
+    /// Example: .Should().HaveName("*.Service.cs") or .ShouldNot().HaveName("*Test*.cs")
+    /// </summary>
+    public FileNameCondition HaveName(string namePattern)
+    {
+        return new FileNameCondition(_graph, _fileMatcher, namePattern, negated: _negated);
+    }
+
+    /// <summary>
+    /// Check if files are in a specific folder.
+    /// Example: .Should().BeInFolder("src/Services") or .ShouldNot().BeInFolder("tests")
+    /// </summary>
+    public FileFolderCondition BeInFolder(string folder)
+    {
+        return new FileFolderCondition(_graph, _fileMatcher, folder, negated: _negated);
+    }
+
+    /// <summary>
+    /// Check if files match a path pattern.
+    /// Example: .Should().BeInPath("src/**") or .ShouldNot().BeInPath("legacy/**")
+    /// </summary>
+    public FilePathCondition BeInPath(string pathPattern)
+    {
+        return new FilePathCondition(_graph, _fileMatcher, pathPattern, negated: _negated);
+    }
 }
