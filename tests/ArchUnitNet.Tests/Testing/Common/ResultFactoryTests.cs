@@ -164,7 +164,7 @@ public class ResultFactoryTests
     public void CreateFromViolations_NullViolations_Throws()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            ResultFactory.CreateFromViolations(null, "TestRule"));
+            ResultFactory.CreateFromViolations(null!, "TestRule"));
     }
 
     [Fact]

@@ -79,7 +79,7 @@ public class ViolationFactoryTests
     [Fact]
     public void FormatViolation_NullViolation_ReturnsPlaceholder()
     {
-        var result = ViolationFactory.FormatViolation(null);
+        var result = ViolationFactory.FormatViolation(null!);
 
         Assert.Equal("No violation information", result);
     }

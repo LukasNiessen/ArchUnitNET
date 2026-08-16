@@ -79,7 +79,7 @@ public class ColoursTests
     [Fact]
     public void Colorize_WithNullText_ReturnsEmptyString()
     {
-        var result = Colours.Colorize(null, Colours.Red, enabled: true);
+        var result = Colours.Colorize(null!, Colours.Red, enabled: true);
         Assert.Equal("", result);
     }
 
