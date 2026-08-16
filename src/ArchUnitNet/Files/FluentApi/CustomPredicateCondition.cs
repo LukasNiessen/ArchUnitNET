@@ -47,12 +47,26 @@ public class CustomPredicateCondition : Checkable
         if (_predicate == null)
             throw new InvalidOperationException("Must call AdhereTo() or Where() first");
 
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
 
-        foreach (var edge in _graph.Edges)
+        // Collect matching edges
+        var matchingEdges = _graph.Edges
+            .Where(e => _sourceMatcher.Matches(e.Source))
+            .ToList();
+
+        // Empty-test guard: fail if no edges match unless explicitly allowed
+        if (matchingEdges.Count == 0 && !options.AllowEmptyTests)
         {
-            if (!_sourceMatcher.Matches(edge.Source))
-                continue;
+            violations.Add(new MatchingFilesViolation(
+                "file selection",
+                $"No files matched the selection pattern - this is likely a typo. " +
+                "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            return await Task.FromResult(violations.AsReadOnly());
+        }
+
+        foreach (var edge in matchingEdges)
+        {
 
             bool satisfiesPredicate = _predicate(edge);
             bool violates = !satisfiesPredicate;

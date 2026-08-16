@@ -45,6 +45,16 @@ public class FileAdherenceCondition : Checkable
             .Where(source => _sourceMatcher.Matches(source))
             .ToList();
 
+        // Empty-test guard: fail if no files match unless explicitly allowed
+        if (sourceFiles.Count == 0 && !options.AllowEmptyTests)
+        {
+            violations.Add(new MatchingFilesViolation(
+                "file selection",
+                $"No files matched the selection pattern - this is likely a typo. " +
+                "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            return await Task.FromResult(violations.AsReadOnly());
+        }
+
         foreach (var sourceFile in sourceFiles)
         {
             try

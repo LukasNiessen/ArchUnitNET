@@ -28,6 +28,7 @@ public class FileNameCondition : Checkable
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
 
         // Collect all matching source files
@@ -36,6 +37,16 @@ public class FileNameCondition : Checkable
         {
             if (_fileMatcher.Matches(edge.Source))
                 allNodes.Add(edge.Source);
+        }
+
+        // Empty-test guard: fail if no files match unless explicitly allowed
+        if (allNodes.Count == 0 && !options.AllowEmptyTests)
+        {
+            violations.Add(new MatchingFilesViolation(
+                "file selection",
+                $"No files matched the selection pattern - this is likely a typo. " +
+                "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            return await Task.FromResult(violations.AsReadOnly());
         }
 
         foreach (var node in allNodes)

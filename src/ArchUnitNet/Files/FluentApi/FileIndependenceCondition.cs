@@ -35,12 +35,23 @@ public class FileIndependenceCondition : Checkable
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
 
         // Filter edges to only include matching files
         var filteredEdges = _graph.Edges
             .Where(e => _fileMatcher.Matches(e.Source) || _fileMatcher.Matches(e.Target))
             .ToList();
+
+        // Empty-test guard: fail if no files match unless explicitly allowed
+        if (filteredEdges.Count == 0 && !options.AllowEmptyTests)
+        {
+            violations.Add(new MatchingFilesViolation(
+                "file selection",
+                $"No files matched the selection pattern - this is likely a typo. " +
+                "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            return await Task.FromResult(violations.AsReadOnly());
+        }
 
         if (filteredEdges.Count == 0)
         {

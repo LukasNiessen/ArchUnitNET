@@ -27,6 +27,7 @@ public class FilePatternCondition : Checkable
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
         var patternMatcher = new PatternMatcher(_pattern);
 
@@ -35,6 +36,16 @@ public class FilePatternCondition : Checkable
         {
             if (_fileMatcher.Matches(edge.Source))
                 allNodes.Add(edge.Source);
+        }
+
+        // Empty-test guard: fail if no files match unless explicitly allowed
+        if (allNodes.Count == 0 && !options.AllowEmptyTests)
+        {
+            violations.Add(new MatchingFilesViolation(
+                _pattern,
+                $"No files matched pattern '{_pattern}' - this is likely a typo. " +
+                "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            return await Task.FromResult(violations.AsReadOnly());
         }
 
         foreach (var node in allNodes)

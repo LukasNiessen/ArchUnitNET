@@ -76,6 +76,20 @@ public class ExternalDependencyCondition : Checkable
             .Where(e => e.External)
             .ToList();
 
+        // Empty-test guard: check if source files match
+        var matchingSourceEdges = externalEdges
+            .Where(e => _sourceMatcher.Matches(e.Source))
+            .ToList();
+
+        if (matchingSourceEdges.Count == 0 && !options.AllowEmptyTests)
+        {
+            violations.Add(new MatchingFilesViolation(
+                "file selection",
+                $"No files matched the selection pattern - this is likely a typo. " +
+                "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            return await Task.FromResult(violations.AsReadOnly());
+        }
+
         foreach (var edge in externalEdges)
         {
             bool sourceMatches = _sourceMatcher.Matches(edge.Source);

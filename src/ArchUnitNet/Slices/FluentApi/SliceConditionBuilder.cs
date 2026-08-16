@@ -150,10 +150,22 @@ public class AdhereToSlicesCondition : ISliceCondition, Checkable
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
 
         if (_edges == null || !_edges.Any())
-            return violations.AsReadOnly();
+        {
+            // Empty-test guard: fail if no edges unless explicitly allowed
+            if (!options.AllowEmptyTests)
+            {
+                violations.Add(new ViolatingSliceEdge(
+                    _slicePattern,
+                    "",
+                    $"No slices matched the pattern - this is likely a typo. " +
+                    "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            }
+            return await Task.FromResult(violations.AsReadOnly());
+        }
 
         var projector = new SliceProjector(_slicePattern);
         var architecture = projector.Project(_edges);
@@ -307,10 +319,22 @@ public class DependencyPatternCondition : ISliceCondition, Checkable
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
 
         if (_edges == null || !_edges.Any())
-            return violations.AsReadOnly();
+        {
+            // Empty-test guard: fail if no edges unless explicitly allowed
+            if (!options.AllowEmptyTests)
+            {
+                violations.Add(new ViolatingSliceEdge(
+                    _slicePattern,
+                    "",
+                    $"No slices matched the pattern - this is likely a typo. " +
+                    "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            }
+            return await Task.FromResult(violations.AsReadOnly());
+        }
 
         var projector = new SliceProjector(_slicePattern);
         var architecture = projector.Project(_edges);
@@ -371,10 +395,22 @@ public class NoCyclicSlicesCondition : ISliceCondition, Checkable
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
     {
+        options ??= new CheckOptions();
         var violations = new List<Violation>();
 
         if (_edges == null || !_edges.Any())
-            return violations.AsReadOnly();
+        {
+            // Empty-test guard: fail if no edges unless explicitly allowed
+            if (!options.AllowEmptyTests)
+            {
+                violations.Add(new ViolatingSliceEdge(
+                    _slicePattern,
+                    "",
+                    $"No slices matched the pattern - this is likely a typo. " +
+                    "If intentional, use CheckOptions with AllowEmptyTests = true"));
+            }
+            return await Task.FromResult(violations.AsReadOnly());
+        }
 
         var projector = new SliceProjector(_slicePattern);
         var architecture = projector.Project(_edges);
