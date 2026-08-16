@@ -8,7 +8,7 @@ namespace ArchUnitNet.Tests.Files.FluentApi;
 
 public class FileAdherenceTests
 {
-    private readonly Graph _sampleGraph;
+    private readonly ArchUnitNet.Common.Extraction.Graph _sampleGraph;
     private readonly string _testFilePath = "TestFile.cs";
 
     public FileAdherenceTests()
@@ -16,7 +16,7 @@ public class FileAdherenceTests
         // Create test files
         CreateTestFiles();
 
-        _sampleGraph = new Graph(new[]
+        _sampleGraph = new ArchUnitNet.Common.Extraction.Graph(new[]
         {
             new Edge(_testFilePath, "System.Linq", External: true, ImportKinds: new[] { ImportKind.Using }),
             new Edge("SmallFile.cs", "System", External: true, ImportKinds: new[] { ImportKind.Using }),
