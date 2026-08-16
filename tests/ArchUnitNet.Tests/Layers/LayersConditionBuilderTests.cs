@@ -4,6 +4,7 @@ using ArchUnitNet.Common.Util;
 using ArchUnitNet.Layers.Common;
 using ArchUnitNet.Layers.FluentApi;
 using Xunit;
+using Graph = ArchUnitNet.Common.Extraction.Graph;
 
 namespace ArchUnitNet.Tests.Layers;
 

@@ -5,6 +5,7 @@ using ArchUnitNet.Layers.Assertion;
 using ArchUnitNet.Layers.FluentApi;
 using ArchUnitNet.Layers.Projection;
 using Xunit;
+using Graph = ArchUnitNet.Common.Extraction.Graph;
 
 namespace ArchUnitNet.Tests.Layers;
 
