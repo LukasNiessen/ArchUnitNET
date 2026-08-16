@@ -4,9 +4,19 @@ using ArchUnitNet.Common.FluentApi;
 namespace ArchUnitNet.Testing.Common;
 
 /// <summary>
-/// Framework-agnostic assertion helper for architecture testing.
+/// Framework-agnostic async assertion helper for architecture testing.
 /// Abstracts the pattern: build rule → check → assert.
 /// Used by xUnit, NUnit, MSTest adapters without framework coupling.
+///
+/// ASYNC ONLY: All methods are async (return Task).
+/// For synchronous assertions or zero-configuration fallback, use ArchAssert class instead.
+///
+/// Usage comparison:
+/// - ArchAssert.Passes(rule) - Synchronous, no framework setup, simplest option
+/// - AssertHelper.PassesAsync(rule) - Async, used by framework adapters internally
+/// - rule.Should().PassAsync() - Fluent async, via framework-specific adapters (xUnit, NUnit, MSTest)
+///
+/// See also: ArchAssert class for the simple, configuration-free alternative.
 /// </summary>
 public static class AssertHelper
 {
