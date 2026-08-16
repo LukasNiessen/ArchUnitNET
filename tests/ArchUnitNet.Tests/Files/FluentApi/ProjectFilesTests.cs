@@ -148,7 +148,7 @@ public class ProjectFilesTests
 
         var rule = ProjectFiles.From(cycleGraph)
             .InPath("**/*.cs")
-            .ShouldNot()
+            .Should()
             .HaveNoCycles();
 
         // Act
@@ -173,7 +173,7 @@ public class ProjectFilesTests
 
         var rule = ProjectFiles.From(linearGraph)
             .InPath("**/*.cs")
-            .ShouldNot()
+            .Should()
             .HaveNoCycles();
 
         // Act
@@ -196,7 +196,7 @@ public class ProjectFilesTests
 
         var rule = ProjectFiles.From(cycleGraph)
             .InPath("models/**")
-            .ShouldNot()
+            .Should()
             .HaveNoCycles();
 
         // Act

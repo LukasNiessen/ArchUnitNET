@@ -10,8 +10,11 @@ namespace ArchUnitNet.Files.FluentApi;
 
 /// <summary>
 /// Cycle detection rule: files should have no circular dependencies.
-/// Uses Tarjan's SCC algorithm to find strongly connected components
-/// and reports any cycles found within the filtered file set.
+/// Uses Johnson's algorithm to find all elementary cycles in the filtered graph.
+/// Reports violations for each cycle found as a readable path.
+///
+/// Note: Positive mood only - only .Should().HaveNoCycles() is supported.
+/// Cycles violate the rule; no cycles = rule passes.
 /// </summary>
 public class FileIndependenceCondition : Checkable
 {
@@ -21,9 +24,13 @@ public class FileIndependenceCondition : Checkable
 
     public FileIndependenceCondition(Graph graph, PatternMatcher fileMatcher, bool negated)
     {
-        _graph = graph;
-        _fileMatcher = fileMatcher;
+        _graph = graph ?? throw new ArgumentNullException(nameof(graph));
+        _fileMatcher = fileMatcher ?? throw new ArgumentNullException(nameof(fileMatcher));
         _negated = negated;
+
+        // Issue #18: Positive mood only
+        if (_negated)
+            throw new InvalidOperationException("HaveNoCycles() supports only positive mood. Use .Should().HaveNoCycles(), not .ShouldNot()");
     }
 
     public async Task<IReadOnlyList<Violation>> CheckAsync(CheckOptions? options = null)
@@ -37,12 +44,7 @@ public class FileIndependenceCondition : Checkable
 
         if (filteredEdges.Count == 0)
         {
-            if (_negated)
-            {
-                // ShouldNot().HaveNoCycles() with no matching files = no violation
-                return await Task.FromResult(violations.AsReadOnly());
-            }
-            // Should().HaveNoCycles() with no matching files = no violation (vacuously true)
+            // No matching files = no cycles possible = rule passes
             return await Task.FromResult(violations.AsReadOnly());
         }
 
@@ -53,25 +55,11 @@ public class FileIndependenceCondition : Checkable
         var cycleFinder = new JohnsonsCycles(filteredGraph);
         var allCycles = cycleFinder.FindAllCycles();
 
+        // Each cycle found = violation
+        // Cycles are reported as readable paths: "A → B → C → A"
         foreach (var cycle in allCycles)
         {
-            bool violates = true;
-
-            if (_negated)
-            {
-                // ShouldNot().HaveNoCycles() with cycles found = violation (cycles should not exist)
-                violates = true;
-            }
-            // Should().HaveNoCycles() with cycles found = no violation (cycles exist as expected)
-            else
-            {
-                violates = false;
-            }
-
-            if (violates)
-            {
-                violations.Add(CyclicDependency.Create(cycle));
-            }
+            violations.Add(CyclicDependency.Create(cycle));
         }
 
         return await Task.FromResult(violations.AsReadOnly());
