@@ -1,5 +1,7 @@
 using ArchUnitNet.Common.Extraction;
 using ArchUnitNet.Common.PatternMatching;
+using ArchUnitNet.Files.Common;
+using FileInfo = ArchUnitNet.Files.Common.FileInfo;
 
 namespace ArchUnitNet.Files.FluentApi;
 
@@ -53,6 +55,15 @@ public class FilesShouldCondition
     public CustomPredicateCondition AdhereTo(Func<Edge, bool> predicate)
     {
         return new CustomPredicateCondition(_graph, _fileMatcher, negated: _negated).AdhereTo(predicate);
+    }
+
+    /// <summary>
+    /// Define custom rules using a predicate function on file properties.
+    /// Example: .Should().AdhereTo(f =&gt; f.NonBlankLineCount &lt; 200, "Files must be under 200 lines")
+    /// </summary>
+    public FileAdherenceCondition AdhereTo(Func<FileInfo, bool> predicate, string message = "")
+    {
+        return new FileAdherenceCondition(_graph, _fileMatcher, predicate, message, negated: _negated);
     }
 
     /// <summary>
