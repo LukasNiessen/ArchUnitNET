@@ -5,13 +5,12 @@ using ArchUnitNet.Layers.Assertion;
 using ArchUnitNet.Layers.FluentApi;
 using ArchUnitNet.Layers.Projection;
 using Xunit;
-using Graph = ArchUnitNet.Common.Extraction.Graph;
 
 namespace ArchUnitNet.Tests.Layers;
 
 public class LayerConstraintTests
 {
-    private static Graph CreateSimpleLayeredGraph()
+    private static ArchUnitNet.Common.Extraction.Graph CreateSimpleLayeredGraph()
     {
         // Create a 3-layer architecture: Presentation -> Business -> Data
         var edges = new List<Edge>
@@ -23,7 +22,7 @@ public class LayerConstraintTests
             // Data layer (no external dependencies)
             new Edge("src/Data/Repository.cs", "System.Data.SqlClient", External: true, new[] { ImportKind.Using })
         };
-        return new Graph(edges);
+        return new ArchUnitNet.Common.Extraction.Graph(edges);
     }
 
     [Fact]
@@ -84,7 +83,7 @@ public class LayerConstraintTests
         {
             new Edge("src/Presentation/Component.cs", "src/Data/Repository.cs", External: false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Presentation");
         constraint.SetAllowedLayers(new[] { "Business" });
@@ -109,7 +108,7 @@ public class LayerConstraintTests
         {
             new Edge("src/Presentation/Component.cs", "src/Data/Repository.cs", External: false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Presentation");
         constraint.SetForbiddenLayers(new[] { "Data" });
@@ -132,7 +131,7 @@ public class LayerConstraintTests
         {
             new Edge("src/Business/Service.cs", "src/Data/Repository.cs", External: false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Business");
         constraint.SetAllowedLayers(new[] { "Business" }); // Sealed: only self
@@ -155,7 +154,7 @@ public class LayerConstraintTests
         {
             new Edge("src/Business/ServiceA.cs", "src/Business/ServiceB.cs", External: false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Business");
         constraint.SetAllowedLayers(new List<string>()); // No external dependencies allowed
@@ -191,7 +190,7 @@ public class LayerConstraintTests
         {
             new Edge("src/Presentation/Component.cs", "src/Utility/Helper.cs", External: false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Presentation");
         constraint.SetForbiddenLayers(new[] { "Utility" });
@@ -210,7 +209,7 @@ public class LayerConstraintTests
     public async Task LayerConstraint_EmptyTestGuard_WithNoLayersAndNoAllowEmptyTests_FailsAsync()
     {
         // Arrange: Empty graph, no layers exist
-        var graph = new Graph(new List<Edge>());
+        var graph = new ArchUnitNet.Common.Extraction.Graph(new List<Edge>());
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Presentation");
 
@@ -228,7 +227,7 @@ public class LayerConstraintTests
     public async Task LayerConstraint_EmptyTestGuard_WithAllowEmptyTests_PassesAsync()
     {
         // Arrange: Empty graph with AllowEmptyTests option
-        var graph = new Graph(new List<Edge>());
+        var graph = new ArchUnitNet.Common.Extraction.Graph(new List<Edge>());
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Presentation");
         var options = new CheckOptions { AllowEmptyTests = true };
@@ -249,7 +248,7 @@ public class LayerConstraintTests
             new Edge("src/Presentation/ComponentA.cs", "src/Data/RepositoryA.cs", External: false, new[] { ImportKind.Using }),
             new Edge("src/Presentation/ComponentB.cs", "src/Data/RepositoryB.cs", External: false, new[] { ImportKind.Using })
         };
-        var graph = new Graph(edges);
+        var graph = new ArchUnitNet.Common.Extraction.Graph(edges);
         var projector = new LayerProjector("src/{Layer}/**");
         var constraint = new LayerConstraint(graph, projector, "Presentation");
         constraint.SetForbiddenLayers(new[] { "Data" });

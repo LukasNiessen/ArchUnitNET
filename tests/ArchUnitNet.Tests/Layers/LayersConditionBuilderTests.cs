@@ -4,13 +4,12 @@ using ArchUnitNet.Common.Util;
 using ArchUnitNet.Layers.Common;
 using ArchUnitNet.Layers.FluentApi;
 using Xunit;
-using Graph = ArchUnitNet.Common.Extraction.Graph;
 
 namespace ArchUnitNet.Tests.Layers;
 
 public class LayersConditionBuilderTests
 {
-    private static Graph CreateSimpleLayeredGraph()
+    private static ArchUnitNet.Common.Extraction.Graph CreateSimpleLayeredGraph()
     {
         // Create a 3-layer architecture: Presentation -> Business -> Data
         var edges = new List<Edge>
@@ -22,7 +21,7 @@ public class LayersConditionBuilderTests
             // Data layer
             new Edge("src/Data/Repository.cs", "System.Data.SqlClient", External: true, new[] { ImportKind.Using })
         };
-        return new Graph(edges);
+        return new ArchUnitNet.Common.Extraction.Graph(edges);
     }
 
     [Fact]
@@ -185,7 +184,7 @@ public class LayersConditionBuilderTests
         {
             new Edge("src/Presentation/Component.cs", "src/Data/Repository.cs", External: false, new[] { ImportKind.Using })
         };
-        var constraint = ProjectLayers.From(new Graph(edges))
+        var constraint = ProjectLayers.From(new ArchUnitNet.Common.Extraction.Graph(edges))
             .DefinedBy("src/{Layer}/**")
             .Where(new Layer("Presentation"))
             .MayOnlyDependOn(new Layer("Business"));
@@ -221,7 +220,7 @@ public class LayersConditionBuilderTests
         {
             new Edge("src/Presentation/Component.cs", "src/Data/Repository.cs", External: false, new[] { ImportKind.Using })
         };
-        var constraint = ProjectLayers.From(new Graph(edges))
+        var constraint = ProjectLayers.From(new ArchUnitNet.Common.Extraction.Graph(edges))
             .DefinedBy("src/{Layer}/**")
             .Where(new Layer("Presentation"))
             .MayNotDependOn(new Layer("Data"));
@@ -242,7 +241,7 @@ public class LayersConditionBuilderTests
         {
             new Edge("src/Data/RepositoryA.cs", "src/Data/RepositoryB.cs", External: false, new[] { ImportKind.Using })
         };
-        var constraint = ProjectLayers.From(new Graph(edges))
+        var constraint = ProjectLayers.From(new ArchUnitNet.Common.Extraction.Graph(edges))
             .DefinedBy("src/{Layer}/**")
             .Where(new Layer("Data"))
             .MayOnlyDependOn(); // Sealed
@@ -260,7 +259,7 @@ public class LayersConditionBuilderTests
         // Arrange: No matching layers, but AllowEmptyTests is true
         var edges = new List<Edge>();
         var options = new CheckOptions { AllowEmptyTests = true };
-        var constraint = ProjectLayers.From(new Graph(edges))
+        var constraint = ProjectLayers.From(new ArchUnitNet.Common.Extraction.Graph(edges))
             .DefinedBy("src/{Layer}/**")
             .Where(new Layer("Presentation"))
             .MayOnlyDependOn(new Layer("Business"));
