@@ -364,7 +364,7 @@ public class FileAdherenceTests
 
     #endregion
 
-    public void Dispose()
+    private void Dispose()
     {
         // Clean up test files
         if (File.Exists(_testFilePath))
