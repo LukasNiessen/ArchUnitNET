@@ -25,7 +25,7 @@ public class LayersConditionBuilderTests
     }
 
     [Fact]
-    public void ProjectLayers_CreatesBuilder()
+    public void ProjectLayers_From_CreatesBuilder()
     {
         // Act
         var builder = ProjectLayers.From(CreateSimpleLayeredGraph());

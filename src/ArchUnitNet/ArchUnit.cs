@@ -1,6 +1,7 @@
 using ArchUnitNet.Common.Extraction;
 using ArchUnitNet.Files.FluentApi;
 using ArchUnitNet.GraphReporting;
+using ArchUnitNet.Layers.FluentApi;
 using ArchUnitNet.Metrics.Extraction;
 using ArchUnitNet.Metrics.FluentApi;
 using ArchUnitNet.Slices.FluentApi;
@@ -53,6 +54,20 @@ public static class ArchUnit
         }
 
         return builder;
+    }
+
+    /// <summary>
+    /// Create a layer-based architecture rule.
+    /// Entry point for defining and validating N-layer architectures.
+    /// Example: ArchUnit.ProjectLayers().DefinedBy("src/{Layer}/**").Where(Layer("Presentation")).MayOnlyDependOn(Layer("Business"))
+    /// </summary>
+    public static LayersConditionBuilder ProjectLayers(string? projectPath = null)
+    {
+        if (string.IsNullOrEmpty(projectPath))
+            throw new ArgumentException("Project path must be provided for layer-based rules", nameof(projectPath));
+
+        var graph = _extractor.ExtractGraphAsync(projectPath).GetAwaiter().GetResult();
+        return new LayersConditionBuilder(graph);
     }
 
     /// <summary>
