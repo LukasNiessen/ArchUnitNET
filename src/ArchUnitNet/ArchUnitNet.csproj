@@ -7,17 +7,17 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- NuGet Package Metadata -->
-    <PackageId>ArchUnitNET</PackageId>
-    <Title>ArchUnitNET</Title>
-    <Description>Test-driven architecture validation for C# and .NET. Enforce layering, prevent cycles, measure cohesion, and visualize dependencies.</Description>
+    <PackageId>ArchUnit</PackageId>
+    <Title>ArchUnit - Architecture Testing for .NET</Title>
+    <Description>Enforce architecture rules in C# and .NET projects. Validate dependency directions and layers, detect cycles, measure cohesion, and generate reports.</Description>
     <PackageProjectUrl>https://github.com/LukasNiessen/ArchUnitNET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/LukasNiessen/ArchUnitNET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <LicenseUrl>https://github.com/LukasNiessen/ArchUnitNET/blob/main/LICENSE</LicenseUrl>
-    <PackageTags>architecture;testing;validation;layers;cycles;metrics;cohesion;dependency;graph;rules;quality</PackageTags>
+    <PackageTags>archunit;architecture;testing;validation;layers;cycles;metrics;cohesion;dependency;graph;rules;quality</PackageTags>
     <Authors>Lukas Niessen</Authors>
-    <PackageReleaseNotes>See https://github.com/LukasNiessen/ArchUnitNET/releases for changelog</PackageReleaseNotes>
+    <PackageReleaseNotes>Alpha prerelease. See https://github.com/LukasNiessen/ArchUnitNET/releases for the changelog.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryBranch>main</RepositoryBranch>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
