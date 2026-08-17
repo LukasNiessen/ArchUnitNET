@@ -18,11 +18,13 @@
     <PackageTags>architecture;testing;validation;layers;cycles;metrics;cohesion;dependency;graph;rules;quality</PackageTags>
     <Authors>Lukas Niessen</Authors>
     <PackageReleaseNotes>See https://github.com/LukasNiessen/ArchUnitNET/releases for changelog</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryBranch>main</RepositoryBranch>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="xunit" Version="2.6.6" Optional="true" />

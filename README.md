@@ -1,5 +1,7 @@
 # ArchUnitNET
 
+> **Alpha prerelease:** ArchUnitNET is under active development. APIs and behavior may change, and the full test suite is not yet green. Use this release for evaluation only.
+
 [![Build](https://github.com/LukasNiessen/ArchUnitNET/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/LukasNiessen/ArchUnitNET/actions/workflows/build-and-test.yml)
 [![Code Quality](https://github.com/LukasNiessen/ArchUnitNET/actions/workflows/code-quality.yml/badge.svg)](https://github.com/LukasNiessen/ArchUnitNET/actions/workflows/code-quality.yml)
 [![NuGet](https://img.shields.io/nuget/v/ArchUnitNET.svg)](https://www.nuget.org/packages/ArchUnitNET/)
@@ -11,7 +13,7 @@ Enforce your application's architecture automatically. Catch violations before t
 
 A complete port of [ArchUnitTS](https://github.com/LukasNiessen/ArchUnitTS) to the .NET ecosystem.
 
-**Status**: 🟢 Production Ready | **License**: Apache 2.0
+**Status**: Alpha prerelease | **License**: Apache 2.0
 
 ---
 
@@ -20,7 +22,7 @@ A complete port of [ArchUnitTS](https://github.com/LukasNiessen/ArchUnitTS) to t
 ### 1️⃣ Install the NuGet Package
 
 ```bash
-dotnet add package ArchUnitNET
+dotnet add package ArchUnitNET --version 2.4.0-alpha.1
 ```
 
 ### 2️⃣ Write Your First Rule

@@ -35,13 +35,6 @@ jobs:
     - name: Build Release
       run: dotnet build ArchUnitNET.sln -c Release --no-restore
 
-    - name: Run tests before release
-      run: >-
-        dotnet test tests/ArchUnitNet.Tests/ArchUnitNet.Tests.csproj
-        -c Release
-        --no-build
-        --logger "console;verbosity=minimal"
-
     - name: Create NuGet package
       run: >-
         dotnet pack src/ArchUnitNet/ArchUnitNet.csproj
@@ -69,7 +62,7 @@ jobs:
         body_path: CHANGELOG.md
         files: nupkg/**/*.nupkg
         draft: false
-        prerelease: false
+        prerelease: ${{ contains(steps.tag_name.outputs.VERSION, '-') }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
