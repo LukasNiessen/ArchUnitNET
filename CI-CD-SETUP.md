@@ -20,25 +20,12 @@ This document outlines the CI/CD pipeline setup for ArchUnitCSharp and what need
 
 ## 📋 Next Steps (Manual GitHub Setup Required)
 
-### 1. **Create GitHub Secrets**
+### 1. **Configure NuGet Trusted Publishing**
 
-You need to add these secrets to your GitHub repository settings:
-
-#### Repository → Settings → Secrets and variables → Actions
-
-**Required Secrets:**
-
-| Secret | Description | Value |
-|--------|-------------|-------|
-| `NUGET_API_KEY` | NuGet.org API key for publishing packages | Your NuGet API key from https://www.nuget.org/account/apikeys |
-| `SONAR_TOKEN` | SonarCloud token for code quality analysis | Optional - get from https://sonarcloud.io |
-
-**Steps to create:**
-1. Go to your repository
-2. Settings → Secrets and variables → Actions
-3. Click "New repository secret"
-4. Add `NUGET_API_KEY` with your NuGet API key
-5. (Optional) Add `SONAR_TOKEN` for SonarCloud integration
+Create a NuGet.org trusted-publishing policy for package owner `lukasniessen`, repository owner
+`LukasNiessen`, repository `ArchUnitNET`, workflow file `release.yml`, and environment `release`.
+The release workflow obtains its publication credential at runtime, so no NuGet repository secret
+is required. `SONAR_TOKEN` remains optional for SonarCloud analysis.
 
 ### 2. **Enable GitHub Pages**
 
@@ -174,8 +161,9 @@ Add these to your README.md:
 ## 🆘 Troubleshooting
 
 ### NuGet Publish Fails
-- Check `NUGET_API_KEY` secret is set correctly
-- Verify API key has push permissions
+- Check that the NuGet trusted-publishing policy exactly matches `LukasNiessen/ArchUnitNET`,
+  `release.yml`, and the `release` environment
+- Check that the release job has `id-token: write` permission
 - Check version number doesn't already exist on NuGet
 
 ### Documentation Deploy Fails

@@ -194,11 +194,11 @@ ArchUnitCSharp is now a **complete, production-grade C#/.NET port of ArchUnitTS*
 
 These require GitHub UI (cannot be automated):
 
-### 1. GitHub Secrets ✅ DOCUMENTED
+### 1. NuGet Trusted Publishing ✅ DOCUMENTED
 **File**: CI-CD-SETUP.md  
 **What to do**: 
-- Go to Settings → Secrets and variables → Actions
-- Add `NUGET_API_KEY` from https://www.nuget.org/account/apikeys
+- Create the NuGet policy for package owner `lukasniessen`
+- Bind it to `LukasNiessen/ArchUnitNET`, `release.yml`, and environment `release`
 - (Optional) Add `SONAR_TOKEN` from https://sonarcloud.io
 
 ### 2. Enable GitHub Pages ✅ DOCUMENTED

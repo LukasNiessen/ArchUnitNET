@@ -188,8 +188,8 @@ git push origin v2.4.1
 
 These need to be done manually on GitHub:
 
-### Required Secrets
-- [ ] `NUGET_API_KEY` - For NuGet publishing
+### NuGet Publishing
+- [ ] Create the NuGet trusted-publishing policy for `release.yml` and environment `release`
 - [ ] `SONAR_TOKEN` - For SonarCloud (optional)
 
 ### GitHub Settings
@@ -245,9 +245,11 @@ These need to be done manually on GitHub:
    git push origin main
    ```
 
-2. **Set up GitHub Secrets**
-   - Go to Settings → Secrets and variables → Actions
-   - Add `NUGET_API_KEY` (from https://www.nuget.org/account/apikeys)
+2. **Set up NuGet trusted publishing**
+   - Package owner: `lukasniessen`
+   - Repository: `LukasNiessen/ArchUnitNET`
+   - Workflow file: `release.yml`
+   - Environment: `release`
 
 3. **Enable GitHub Pages**
    - Settings → Pages

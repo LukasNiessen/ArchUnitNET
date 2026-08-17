@@ -5,7 +5,7 @@ This document describes how to create and publish a new release of ArchUnitNET.
 ## Prerequisites
 
 - Write access to the GitHub repository
-- NuGet API key configured in GitHub Secrets (`NUGET_API_KEY`)
+- A NuGet trusted-publishing policy configured for the `release.yml` workflow and `release` environment
 
 ## Release Checklist
 
@@ -29,24 +29,15 @@ git tag -l vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-### 3. Create GitHub Release
+### 3. Automatic NuGet Publishing
 
-1. Go to [GitHub Releases](https://github.com/LukasNiessen/ArchUnitNET/releases)
-2. Click "Draft a new release"
-3. Select your tag (vX.Y.Z)
-4. Title: `ArchUnitNET vX.Y.Z`
-5. Description: Copy relevant sections from CHANGELOG.md
-6. Click "Publish release"
-
-### 4. Automatic NuGet Publishing
-
-When you publish a GitHub release with a tag matching `v*`, the CI/CD workflow automatically:
+Pushing a tag matching `v*.*.*` starts `.github/workflows/release.yml`, which automatically:
 
 1. ✅ Builds the project in Release mode
 2. ✅ Runs tests
 3. ✅ Packs the NuGet package
 4. ✅ Publishes to NuGet.org
-5. ✅ Creates release artifacts
+5. ✅ Creates the GitHub release and attaches the package
 
 **No manual intervention needed!**
 
@@ -91,11 +82,20 @@ If a release has issues:
 
 ## Environment Setup
 
-### GitHub Secrets Required
+### NuGet Trusted-Publishing Policy
 
-Set up this secret in your GitHub repository settings:
+Create the policy on NuGet.org with these values:
 
-- **NUGET_API_KEY** - Your NuGet.org API key ([get one here](https://www.nuget.org/account/apikeys))
+| Field | Value |
+| --- | --- |
+| Package owner | `lukasniessen` |
+| CI/CD provider | GitHub Actions |
+| Repository owner | `LukasNiessen` |
+| Repository | `ArchUnitNET` |
+| Workflow file | `release.yml` |
+| Environment | `release` |
+
+No repository secret is required for NuGet publishing.
 
 ### Local Development
 
@@ -111,16 +111,15 @@ dotnet add package ArchUnitNET --version X.Y.Z --source ./packages
 
 ## CI/CD Workflow
 
-The publish workflow (`publish-nuget.yml`) automatically:
+The publish workflow (`release.yml`) automatically:
 
-- Triggers on GitHub release publish
+- Triggers when a `v*.*.*` tag is pushed
 - Builds the project
 - Runs tests
 - Extracts version from Git tag
 - Creates NuGet package
 - Publishes to NuGet.org
-- Uploads package as artifact
-- Creates release notes
+- Creates a GitHub release and attaches the package
 
 ## FAQ
 
