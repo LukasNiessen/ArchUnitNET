@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Code Metrics Analysis | ArchUnitCSharp </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Code Metrics Analysis | ArchUnitCSharp ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="">
+      <meta name="docfx:tocrel" content="">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/metrics.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="code-metrics-analysis">Code Metrics Analysis</h1>
+
+<p>ArchUnitCSharp can analyze code quality metrics like LCOM (Lack of Cohesion of Methods) and cyclomatic complexity to ensure your classes maintain high cohesion.</p>
+<h2 id="overview">Overview</h2>
+<p>Metrics analysis works on compiled types extracted via Roslyn:</p>
+<pre><code class="lang-csharp">var rule = Metrics()
+    .Methods()                   // Analyze method metrics
+    .LCOM96a()                  // Calculate LCOM96a score
+    .ShouldBeLessThan(0.5);     // Enforce threshold
+
+await rule.CheckAsync();
+</code></pre>
+<h2 id="lcom-lack-of-cohesion-of-methods">LCOM (Lack of Cohesion of Methods)</h2>
+<p>LCOM measures how well methods in a class are related. <strong>Lower LCOM = higher cohesion</strong>.</p>
+<h3 id="the-four-lcom-variants">The Four LCOM Variants</h3>
+<p>ArchUnitCSharp supports all four LCOM formulas:</p>
+<h4 id="1-lcom1-chidamber--kemerer-1994">1. LCOM1 (Chidamber &amp; Kemerer, 1994)</h4>
+<p><strong>Formula</strong>: Count pairs of methods with NO shared fields</p>
+<pre><code>LCOM1 = P - Q
+where:
+  P = number of method pairs with no common field access
+  Q = number of method pairs with common field access
+</code></pre>
+<p><strong>Range</strong>: 0 (perfect cohesion) to M*(M-1)/2 (no cohesion)</p>
+<p><strong>Use case</strong>: Conservative measure, good for detecting obvious problems</p>
+<p><strong>Example</strong>:</p>
+<pre><code>Class has 3 methods:
+- Method1: accesses field1
+- Method2: accesses field2
+- Method3: accesses field3 (no overlap)
+
+P = 3 (all pairs have no common fields)
+Q = 0 (no pairs have common fields)
+LCOM1 = 3
+</code></pre>
+<h4 id="2-lcom96a-hitz--montazeri-1996---variant-a">2. LCOM96a (Hitz &amp; Montazeri, 1996 - Variant A)</h4>
+<p><strong>Formula</strong>: Normalized version of LCOM1</p>
+<pre><code>LCOM96a = (P - Q) / (M - 1)
+where:
+  M = number of methods
+  P = method pairs with no common fields
+  Q = method pairs with common fields
+</code></pre>
+<p><strong>Range</strong>: 0.0 (perfect) to 1.0 (no cohesion)</p>
+<p><strong>Use case</strong>: Normalized, easier to set thresholds (typically 0.5)</p>
+<p><strong>Example</strong>:</p>
+<pre><code>Same class as above:
+LCOM96a = (3 - 0) / (3 - 1) = 3/2 = 1.5 (clamped to 1.0 in normalized form)
+</code></pre>
+<h4 id="3-lcom96b-hitz--montazeri-1996---variant-b">3. LCOM96b (Hitz &amp; Montazeri, 1996 - Variant B)</h4>
+<p><strong>Formula</strong>: Alternative normalization</p>
+<pre><code>LCOM96b = 1 - (Q / P) if P &gt; 0, else 0
+</code></pre>
+<p><strong>Range</strong>: 0.0 to 1.0</p>
+<p><strong>Use case</strong>: Emphasizes method grouping, complementary to LCOM96a</p>
+<h4 id="4-lcom1995-henderson-sellers-1996">4. LCOM1995 (Henderson-Sellers, 1996)</h4>
+<p><strong>Formula</strong>: Field-access based normalization</p>
+<pre><code>LCOM1995 = (M - F/N) / (M - 1)
+where:
+  M = number of methods
+  F = number of fields
+  N = average number of fields accessed per method
+</code></pre>
+<p><strong>Range</strong>: 0.0 to 1.0+</p>
+<p><strong>Use case</strong>: Accounts for class size, useful for large classes</p>
+<h2 id="basic-usage">Basic Usage</h2>
+<h3 id="threshold-by-lcom96a">Threshold by LCOM96a</h3>
+<p>Most common pattern:</p>
+<pre><code class="lang-csharp">var rule = Metrics()
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+
+var violations = await rule.CheckAsync();
+// violations: classes with LCOM96a &gt;= 0.5 (low cohesion)
+</code></pre>
+<h3 id="threshold-by-lcom1">Threshold by LCOM1</h3>
+<p>Conservative approach:</p>
+<pre><code class="lang-csharp">var rule = Metrics()
+    .Methods()
+    .LCOM1()
+    .ShouldBeLessThan(5);  // Threshold depends on class size
+
+var violations = await rule.CheckAsync();
+</code></pre>
+<h3 id="threshold-by-count">Threshold by Count</h3>
+<p>Limit number of methods:</p>
+<pre><code class="lang-csharp">var rule = Metrics()
+    .Methods()
+    .Count()
+    .ShouldHaveAtMost(20);  // Enforce max method count
+
+var violations = await rule.CheckAsync();
+</code></pre>
+<h2 id="advanced-analysis">Advanced Analysis</h2>
+<h3 id="analyze-specific-types">Analyze Specific Types</h3>
+<pre><code class="lang-csharp">// Check a single class
+var rule = Metrics()
+    .Of(typeof(MyService))
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+
+// Check all types in a namespace (future API)
+var rule = Metrics()
+    .InNamespace(&quot;MyApp.Services&quot;)
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+</code></pre>
+<h3 id="different-thresholds-by-violation-severity">Different Thresholds by Violation Severity</h3>
+<pre><code class="lang-csharp">// Different rules for different criticality
+var coreServicesRule = Metrics()
+    .InNamespace(&quot;MyApp.Core&quot;)
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.3);  // Stricter
+
+var utilityRule = Metrics()
+    .InNamespace(&quot;MyApp.Utils&quot;)
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.7);  // Relaxed
+
+var violations = new[]
+{
+    await coreServicesRule.CheckAsync(),
+    await utilityRule.CheckAsync()
+};
+</code></pre>
+<h2 id="understanding-results">Understanding Results</h2>
+<h3 id="analyzing-low-cohesion-classes">Analyzing Low-Cohesion Classes</h3>
+<p>When LCOM is high (low cohesion), your class likely has multiple responsibilities:</p>
+<pre><code class="lang-csharp">// Bad: Multiple independent method groups
+public class UserService
+{
+    // Group 1: User management
+    public void CreateUser(string name) { /* ... */ }
+    public void UpdateUser(int id) { /* ... */ }
+    
+    // Group 2: Payment processing (unrelated!)
+    public void ProcessPayment(decimal amount) { /* ... */ }
+    public void RefundPayment(int transactionId) { /* ... */ }
+    
+    // Group 3: Email (also unrelated!)
+    public void SendWelcomeEmail(string email) { /* ... */ }
+    
+    // LCOM96a = ~0.8 (high = low cohesion)
+}
+</code></pre>
+<p><strong>Fix</strong>: Split into smaller, focused classes:</p>
+<pre><code class="lang-csharp">// Good: Each class has one responsibility
+public class UserService
+{
+    public void CreateUser(string name) { /* ... */ }
+    public void UpdateUser(int id) { /* ... */ }
+}
+
+public class PaymentProcessor
+{
+    public void ProcessPayment(decimal amount) { /* ... */ }
+    public void RefundPayment(int transactionId) { /* ... */ }
+}
+
+public class EmailService
+{
+    public void SendWelcomeEmail(string email) { /* ... */ }
+}
+
+// Each has LCOM96a = ~0.2 (low = high cohesion)
+</code></pre>
+<h3 id="high-cohesion-example">High-Cohesion Example</h3>
+<pre><code class="lang-csharp">// Good: Highly cohesive class
+public class OrderCalculator
+{
+    private Order _order;
+    private TaxService _taxService;
+    
+    // All methods work with the same data
+    public decimal CalculateSubtotal() { /* uses _order */ }
+    public decimal CalculateTax() { /* uses _order, _taxService */ }
+    public decimal CalculateTotal() { /* uses _order */ }
+    public bool IsEligibleForDiscount() { /* uses _order */ }
+    
+    // LCOM96a = ~0.1 (all methods share data)
+}
+</code></pre>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="large-classes">Large Classes</h3>
+<p>For classes with 100+ methods, LCOM calculation can be slow. Optimize:</p>
+<pre><code class="lang-csharp">// Option 1: Set higher threshold for large classes
+var rule = Metrics()
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.8);  // Relaxed for legacy code
+
+// Option 2: Analyze specific namespaces only
+var rule = Metrics()
+    .InNamespace(&quot;MyApp.Core&quot;)
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+
+// Option 3: Exclude utility classes
+var rule = Metrics()
+    .OfTypesMatchingPattern(@&quot;.*Service$&quot;)  // Only service classes
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+</code></pre>
+<h3 id="caching">Caching</h3>
+<p>Results are cached per analysis run:</p>
+<pre><code class="lang-csharp">var rule = Metrics()
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+
+var violations1 = await rule.CheckAsync();  // Full analysis
+var violations2 = await rule.CheckAsync();  // Returns cached result
+</code></pre>
+<h2 id="testing">Testing</h2>
+<p>Integrate metrics into your test suite:</p>
+<pre><code class="lang-csharp">[TestFixture]
+public class CodeQualityTests
+{
+    [Test]
+    public async Task AllMethodsShouldHaveHighCohesion()
+    {
+        var rule = Metrics()
+            .Methods()
+            .LCOM96a()
+            .ShouldBeLessThan(0.5);
+
+        var violations = await rule.CheckAsync();
+        Assert.That(violations, Is.Empty,
+            $&quot;Found {violations.Count} classes with low cohesion&quot;);
+    }
+
+    [Test]
+    public async Task ServicesShouldHaveFewMethods()
+    {
+        var rule = Metrics()
+            .InNamespace(&quot;MyApp.Services&quot;)
+            .Methods()
+            .Count()
+            .ShouldHaveAtMost(20);
+
+        var violations = await rule.CheckAsync();
+        Assert.That(violations, Is.Empty,
+            $&quot;Found {violations.Count} oversized service classes&quot;);
+    }
+
+    [Test]
+    public async Task NoClassShouldExceed100Methods()
+    {
+        var rule = Metrics()
+            .Methods()
+            .Count()
+            .ShouldHaveAtMost(100);
+
+        var violations = await rule.CheckAsync();
+    }
+}
+</code></pre>
+<h2 id="recommended-thresholds">Recommended Thresholds</h2>
+<p>Based on industry practice:</p>
+<table>
+<thead>
+<tr>
+<th>Threshold</th>
+<th>Interpretation</th>
+<th>Recommended For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&lt; 0.3</td>
+<td>Excellent cohesion</td>
+<td>Core business logic</td>
+</tr>
+<tr>
+<td>0.3 - 0.5</td>
+<td>Good cohesion</td>
+<td>Most application code</td>
+</tr>
+<tr>
+<td>0.5 - 0.7</td>
+<td>Fair cohesion</td>
+<td>Utilities, helpers</td>
+</tr>
+<tr>
+<td>&gt; 0.7</td>
+<td>Poor cohesion</td>
+<td>Refactor needed</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Start with 0.5</strong> and adjust based on your codebase maturity.</p>
+<h2 id="choosing-which-lcom-variant">Choosing Which LCOM Variant</h2>
+<table>
+<thead>
+<tr>
+<th>Variant</th>
+<th>Best For</th>
+<th>Threshold Guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LCOM1</strong></td>
+<td>Conservative detection</td>
+<td>&gt; 5 (class size dependent)</td>
+</tr>
+<tr>
+<td><strong>LCOM96a</strong></td>
+<td>Normalized, comparable</td>
+<td>&lt; 0.5 (recommended)</td>
+</tr>
+<tr>
+<td><strong>LCOM96b</strong></td>
+<td>Alternative normalization</td>
+<td>&lt; 0.6</td>
+</tr>
+<tr>
+<td><strong>LCOM1995</strong></td>
+<td>Large classes</td>
+<td>&lt; 0.4</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation</strong>: Start with <strong>LCOM96a</strong> at threshold <strong>0.5</strong>.</p>
+<h2 id="limitations">Limitations</h2>
+<ol>
+<li><strong>Magic numbers</strong>: Find appropriate thresholds for your codebase</li>
+<li><strong>Utility classes</strong>: Even cohesive utility classes might show high LCOM</li>
+<li><strong>Legacy code</strong>: Threshold relaxation needed for older codebases</li>
+<li><strong>Framework-generated code</strong>: May have skewed metrics</li>
+</ol>
+<h2 id="comparison-with-other-tools">Comparison with Other Tools</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>LCOM Variants</th>
+<th>Threshold Tuning</th>
+<th>IDE Integration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ArchUnitCSharp</strong></td>
+<td>4 variants</td>
+<td>Full control</td>
+<td>Via rules</td>
+</tr>
+<tr>
+<td><strong>NDepend</strong></td>
+<td>Multiple</td>
+<td>Limited</td>
+<td>Visual Studio</td>
+</tr>
+<tr>
+<td><strong>StyleCop</strong></td>
+<td>None</td>
+<td>N/A</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td><strong>Resharper</strong></td>
+<td>Limited</td>
+<td>Limited</td>
+<td>Visual Studio</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>See also:</p>
+<ul>
+<li><a href="getting-started.html">Getting Started</a> — Quick start guide</li>
+<li><a href="file-rules.html">File-Based Rules</a> — Dependency validation</li>
+<li><a href="slicing.html">Architecture Slicing</a> — Feature-based rules</li>
+<li><a href="graph-reporting.html">Graph Visualization</a> — Export dependencies</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/metrics.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Architecture Slicing | ArchUnitCSharp </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Architecture Slicing | ArchUnitCSharp ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="">
+      <meta name="docfx:tocrel" content="">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/slicing.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="architecture-slicing">Architecture Slicing</h1>
+
+<p>Architecture slicing divides your codebase into logical components based on patterns. Use it to enforce layered or feature-based architecture.</p>
+<h2 id="overview">Overview</h2>
+<p>Slicing extracts logical &quot;slices&quot; from your file structure and validates relationships between them:</p>
+<pre><code class="lang-csharp">var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Slice}/**&quot;)        // Define slices by pattern
+    .Should()
+    .AdhereToDefinedSlices();           // Validate no cross-slice violations
+
+await rule.CheckAsync();
+</code></pre>
+<h2 id="slice-definition">Slice Definition</h2>
+<h3 id="basic-pattern">Basic Pattern</h3>
+<p>Slices are defined by extracting named groups from file paths:</p>
+<pre><code class="lang-csharp">// Pattern: src/{Slice}/**
+// Extracts: src/Feature1/** → Slice = &quot;Feature1&quot;
+//          src/Feature2/** → Slice = &quot;Feature2&quot;
+//          src/Feature3/** → Slice = &quot;Feature3&quot;
+
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Slice}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+</code></pre>
+<p><strong>Result</strong>: Creates slices named &quot;Feature1&quot;, &quot;Feature2&quot;, &quot;Feature3&quot;</p>
+<h3 id="multiple-capture-groups">Multiple Capture Groups</h3>
+<p>Define hierarchical slices:</p>
+<pre><code class="lang-csharp">// Pattern: src/{Layer}/{Feature}/**
+// Extracts: src/UI/Orders/** → Layer=&quot;UI&quot;, Feature=&quot;Orders&quot;
+//          src/UI/Users/**  → Layer=&quot;UI&quot;, Feature=&quot;Users&quot;
+//          src/Service/Orders/** → Layer=&quot;Service&quot;, Feature=&quot;Orders&quot;
+
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Layer}/{Feature}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+</code></pre>
+<h3 id="nested-patterns">Nested Patterns</h3>
+<p>Create deep slicing hierarchies:</p>
+<pre><code class="lang-csharp">// Pattern: src/{Feature}/modules/{Module}/**
+// Extracts: src/Orders/modules/Shipping/** → Feature=&quot;Orders&quot;, Module=&quot;Shipping&quot;
+//          src/Orders/modules/Invoicing/** → Feature=&quot;Orders&quot;, Module=&quot;Invoicing&quot;
+
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Feature}/modules/{Module}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+</code></pre>
+<h2 id="common-slicing-patterns">Common Slicing Patterns</h2>
+<h3 id="pattern-1-feature-based-architecture">Pattern 1: Feature-Based Architecture</h3>
+<p>Each feature is a slice with no cross-feature dependencies:</p>
+<pre><code class="lang-csharp">// File structure:
+// src/
+//   Features/
+//     Orders/
+//       OrderService.cs
+//       OrderRepository.cs
+//     Users/
+//       UserService.cs
+//       UserRepository.cs
+//     Products/
+//       ProductService.cs
+
+// Define slices
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/Features/{Feature}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Validates: Orders doesn't depend on Users or Products
+//            Users doesn't depend on Orders or Products
+//            Products doesn't depend on Orders or Users
+</code></pre>
+<h3 id="pattern-2-layered-architecture">Pattern 2: Layered Architecture</h3>
+<p>Enforce strict layer separation:</p>
+<pre><code class="lang-csharp">// File structure:
+// src/
+//   Presentation/
+//   Business/
+//   Data/
+
+// Define slices
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Layer}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Standard rule: Data → Business → Presentation (one direction only)
+// This rule would detect ANY cross-layer dependency
+</code></pre>
+<h3 id="pattern-3-domain-driven-design-ddd">Pattern 3: Domain-Driven Design (DDD)</h3>
+<p>Bounded contexts as slices:</p>
+<pre><code class="lang-csharp">// File structure:
+// src/
+//   Catalog/
+//     Domain/
+//     Application/
+//     Infrastructure/
+//   Orders/
+//     Domain/
+//     Application/
+//     Infrastructure/
+
+// Define slices
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{BoundedContext}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Validates: Catalog is independent from Orders
+</code></pre>
+<h3 id="pattern-4-microservices">Pattern 4: Microservices</h3>
+<p>Each service as a slice:</p>
+<pre><code class="lang-csharp">// Repository structure:
+// services/
+//   UserService/
+//     src/
+//   OrderService/
+//     src/
+//   ProductService/
+//     src/
+
+// Define slices
+var rule = ProjectSlices()
+    .DefinedBy(&quot;services/{Service}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Validates: No direct service-to-service dependencies (use APIs instead)
+</code></pre>
+<h2 id="validation-rules">Validation Rules</h2>
+<h3 id="rule-1-adhere-to-defined-slices">Rule 1: Adhere to Defined Slices</h3>
+<p>Prevent all cross-slice dependencies:</p>
+<pre><code class="lang-csharp">var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Slice}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// violations: any file in one slice importing from another slice
+</code></pre>
+<p><strong>Use case</strong>: Strict feature isolation</p>
+<h3 id="rule-2-specific-allowed-dependencies-future">Rule 2: Specific Allowed Dependencies (Future)</h3>
+<pre><code class="lang-csharp">// Not yet available:
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Slice}/**&quot;)
+    .Should()
+    .ContainDependency(&quot;Orders&quot;, &quot;Products&quot;)  // Orders can depend on Products
+    .And()
+    .ContainDependency(&quot;Orders&quot;, &quot;Common&quot;);   // Orders can also depend on Common
+
+// violations: dependency not in allowed list
+</code></pre>
+<h2 id="advanced-scenarios">Advanced Scenarios</h2>
+<h3 id="excluding-files-from-slices">Excluding Files from Slices</h3>
+<p>Files that shouldn't be sliced:</p>
+<pre><code class="lang-csharp">var rule = ProjectSlices()
+    .DefinedBy(&quot;src/Features/{Feature}/**&quot;)
+    .Except(&quot;src/Common/**&quot;)              // Shared code (all slices can use)
+    .Except(&quot;src/**/index.cs&quot;)            // Barrel exports
+    .Except(&quot;src/**/Models/**&quot;)           // Shared models
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Now Common, index.cs, and Models are shared across all slices
+</code></pre>
+<h3 id="hierarchical-slicing">Hierarchical Slicing</h3>
+<p>Define slices at different levels:</p>
+<pre><code class="lang-csharp">// Method 1: Strict feature isolation
+var featureIsolation = ProjectSlices()
+    .DefinedBy(&quot;src/{Feature}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Method 2: Allow layer dependencies within features
+var layerViolations = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**/Presentation/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/**/Data/**&quot;);
+
+var violations = new[]
+{
+    await featureIsolation.CheckAsync(),
+    await layerViolations.CheckAsync()
+};
+</code></pre>
+<h3 id="custom-slice-names">Custom Slice Names</h3>
+<p>Map patterns to meaningful names:</p>
+<pre><code class="lang-csharp">// Pattern: src/Features/{Feature}/{SubModule}/**
+// Files in: src/Features/Orders/Shipping/
+// Becomes: Slice &quot;Orders::Shipping&quot;
+
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/Features/{Feature}/{SubModule}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// In violation output: &quot;Orders::Shipping violated by importing from Users&quot;
+</code></pre>
+<h2 id="debugging-slices">Debugging Slices</h2>
+<h3 id="viewing-extracted-slices">Viewing Extracted Slices</h3>
+<pre><code class="lang-csharp">var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Feature}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+var violations = await rule.CheckAsync();
+
+foreach (var violation in violations)
+{
+    if (violation is ViolatingSliceEdge sliceViolation)
+    {
+        Console.WriteLine($&quot;Source Slice: {sliceViolation.SourceSlice}&quot;);
+        Console.WriteLine($&quot;Target Slice: {sliceViolation.TargetSlice}&quot;);
+        Console.WriteLine($&quot;Files: {sliceViolation.Source} → {sliceViolation.Target}&quot;);
+    }
+}
+</code></pre>
+<h3 id="exporting-slice-graph">Exporting Slice Graph</h3>
+<pre><code class="lang-csharp">// Export architecture showing slices
+var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(2)
+    .IncludeSlices(new[] { &quot;Orders&quot;, &quot;Users&quot;, &quot;Products&quot; });
+
+await graph.ExportToFileAsync(GraphFormat.Mermaid, &quot;slices.md&quot;);
+// Shows slice relationships visually
+</code></pre>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="large-number-of-slices">Large Number of Slices</h3>
+<p>For codebases with 100+ slices:</p>
+<pre><code class="lang-csharp">// Option 1: Validate specific slices only
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Feature}/**&quot;)
+    .For(new[] { &quot;Orders&quot;, &quot;Users&quot;, &quot;Products&quot; })  // Validate only these
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Option 2: Use broader pattern to reduce slices
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Area}/{Feature}/**&quot;)  // Merge into areas first
+    .Should()
+    .AdhereToDefinedSlices();
+</code></pre>
+<h3 id="pattern-compilation">Pattern Compilation</h3>
+<p>Patterns are compiled once and cached:</p>
+<pre><code class="lang-csharp">var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Feature}/**&quot;);
+
+var violations1 = await rule.CheckAsync();  // Compiles pattern
+var violations2 = await rule.CheckAsync();  // Uses cached compiled pattern
+</code></pre>
+<h2 id="testing">Testing</h2>
+<p>Integrate slicing into your test suite:</p>
+<pre><code class="lang-csharp">[TestFixture]
+public class ArchitectureTests
+{
+    [Test]
+    public async Task FeaturesAreIsolated()
+    {
+        var rule = ProjectSlices()
+            .DefinedBy(&quot;src/Features/{Feature}/**&quot;)
+            .Should()
+            .AdhereToDefinedSlices();
+
+        var violations = await rule.CheckAsync();
+        Assert.That(violations, Is.Empty,
+            $&quot;Found {violations.Count} cross-feature dependencies&quot;);
+    }
+
+    [Test]
+    public async Task SharedCodeIsNotDuplicated()
+    {
+        var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+            .InPath(&quot;src/Features/*/Models/**&quot;)
+            .ShouldNot()
+            .DependOnFiles()
+            .InFolder(&quot;src/Features/*/Models/**&quot;);
+
+        var violations = await rule.CheckAsync();
+        Assert.That(violations, Is.Empty,
+            &quot;Model files from different features should use Common namespace&quot;);
+    }
+
+    [Test]
+    public async Task AllFeaturesHaveRequiredStructure()
+    {
+        var requiredFiles = new[]
+        {
+            &quot;src/Features/{Feature}/Service.cs&quot;,
+            &quot;src/Features/{Feature}/Repository.cs&quot;,
+            &quot;src/Features/{Feature}/Models.cs&quot;
+        };
+
+        foreach (var pattern in requiredFiles)
+        {
+            // Validate all features have required files
+            // Implementation depends on file system APIs
+        }
+    }
+}
+</code></pre>
+<h2 id="comparison-with-file-based-rules">Comparison with File-Based Rules</h2>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Use Case</th>
+<th>Flexibility</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>File-Based Rules</strong></td>
+<td>Specific relationships</td>
+<td>High</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Slicing</strong></td>
+<td>Architectural patterns</td>
+<td>Medium</td>
+<td>Medium</td>
+</tr>
+</tbody>
+</table>
+<p><strong>When to use slicing</strong>:</p>
+<ul>
+<li>Enforcing feature isolation</li>
+<li>DDD bounded contexts</li>
+<li>Microservice independence</li>
+</ul>
+<p><strong>When to use file-based rules</strong>:</p>
+<ul>
+<li>Layered architecture</li>
+<li>Specific dependency paths</li>
+<li>Complex filtering</li>
+</ul>
+<p><strong>Combine both</strong> for comprehensive architecture validation:</p>
+<pre><code class="lang-csharp">// Step 1: Features are isolated
+var featureRule = ProjectSlices()
+    .DefinedBy(&quot;src/Features/{Feature}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+// Step 2: Within features, enforce layers
+var layerRule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Features/*/Presentation/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Features/*/Data/**&quot;);
+
+// Step 3: No circular dependencies
+var cycleRule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**&quot;)
+    .Should()
+    .HaveNoCycles();
+
+var violations = new[]
+{
+    await featureRule.CheckAsync(),
+    await layerRule.CheckAsync(),
+    await cycleRule.CheckAsync()
+};
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="issue-pattern-doesnt-match-any-files">Issue: Pattern doesn't match any files</h3>
+<pre><code class="lang-csharp">// ❌ Wrong pattern
+var rule = ProjectSlices()
+    .DefinedBy(&quot;features/{Feature}/**&quot;);  // No src/ prefix
+
+// ✅ Correct
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/features/{Feature}/**&quot;);
+</code></pre>
+<h3 id="issue-capture-group-not-extracting-correctly">Issue: Capture group not extracting correctly</h3>
+<pre><code class="lang-csharp">// ❌ Wrong
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/Features/**/{Feature}/**&quot;);  // Extra **
+
+// ✅ Correct
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/Features/{Feature}/**&quot;);
+</code></pre>
+<h3 id="issue-too-many-or-too-few-slices">Issue: Too many or too few slices</h3>
+<p>Check your pattern:</p>
+<pre><code class="lang-csharp">// If getting too many slices, move ** earlier in pattern
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Feature}/**&quot;);  // Groups by immediate subfolder
+
+// If getting too few slices, add more nesting
+var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Feature}/{Module}/**&quot;);  // Groups by feature + module
+</code></pre>
+<hr>
+<p>See also:</p>
+<ul>
+<li><a href="getting-started.html">Getting Started</a> — Quick start guide</li>
+<li><a href="file-rules.html">File-Based Rules</a> — Dependency validation</li>
+<li><a href="metrics.html">Metrics Analysis</a> — Code quality rules</li>
+<li><a href="graph-reporting.html">Graph Visualization</a> — Export dependencies</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/slicing.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

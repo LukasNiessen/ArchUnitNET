@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Graph Visualization &amp; Reporting | ArchUnitCSharp </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Graph Visualization &amp; Reporting | ArchUnitCSharp ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="">
+      <meta name="docfx:tocrel" content="">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/graph-reporting.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="graph-visualization--reporting">Graph Visualization &amp; Reporting</h1>
+
+<p>ArchUnitCSharp can export your architecture as dependency graphs in multiple formats for visualization and analysis.</p>
+<h2 id="overview">Overview</h2>
+<p>Extract and visualize your dependency graph:</p>
+<pre><code class="lang-csharp">var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(2);         // Aggregate to folder level
+
+await graph.ExportToFileAsync(
+    GraphFormat.Mermaid,
+    &quot;architecture.md&quot;
+);
+</code></pre>
+<h2 id="supported-formats">Supported Formats</h2>
+<p>ArchUnitCSharp exports to 6 formats, each suited for different use cases:</p>
+<h3 id="1-mermaid-diagram">1. Mermaid Diagram</h3>
+<p><strong>File</strong>: <code>architecture.md</code><br>
+<strong>Tool</strong>: <a href="https://mermaid.live">https://mermaid.live</a> (online) or VS Code extension<br>
+<strong>Best for</strong>: Sharing diagrams in documentation, GitHub README</p>
+<pre><code class="lang-mermaid">graph LR
+    UI[&quot;UI Layer&quot;]
+    Service[&quot;Service Layer&quot;]
+    Data[&quot;Data Layer&quot;]
+    
+    UI --&gt;|depends on| Service
+    Service --&gt;|depends on| Data
+</code></pre>
+<p><strong>Example output</strong>:</p>
+<pre><code>graph LR
+    src_UI[&quot;src/UI&quot;]
+    src_Service[&quot;src/Service&quot;]
+    src_Data[&quot;src/Data&quot;]
+    
+    src_UI --&gt;|10 deps| src_Service
+    src_Service --&gt;|8 deps| src_Data
+</code></pre>
+<h3 id="2-graphviz-dot">2. Graphviz DOT</h3>
+<p><strong>File</strong>: <code>architecture.dot</code><br>
+<strong>Tool</strong>: Graphviz (<a href="https://graphviz.org">https://graphviz.org</a>), online viewers<br>
+<strong>Best for</strong>: Professional diagrams, publishing</p>
+<pre><code class="lang-bash"># Convert to SVG
+dot -Tsvg architecture.dot -o architecture.svg
+
+# Convert to PNG
+dot -Tpng architecture.dot -o architecture.png
+</code></pre>
+<p><strong>Example output</strong>:</p>
+<pre><code class="lang-dot">digraph Architecture {
+    rankdir=LR;
+    
+    &quot;src/UI&quot; -&gt; &quot;src/Service&quot; [label=&quot;10&quot;];
+    &quot;src/Service&quot; -&gt; &quot;src/Data&quot; [label=&quot;8&quot;];
+}
+</code></pre>
+<h3 id="3-d2-language">3. D2 Language</h3>
+<p><strong>File</strong>: <code>architecture.d2</code><br>
+<strong>Tool</strong>: <a href="https://d2lang.com">https://d2lang.com</a> (online editor)<br>
+<strong>Best for</strong>: Modern, readable syntax, interactive diagrams</p>
+<pre><code class="lang-bash"># Install D2
+brew install d2  # macOS
+# or download from https://d2lang.com
+
+# Render to SVG
+d2 architecture.d2 architecture.svg
+</code></pre>
+<p><strong>Example output</strong>:</p>
+<pre><code class="lang-d2">UI -&gt; Service: 10 dependencies
+Service -&gt; Data: 8 dependencies
+Data: Database layer
+
+style UI: {fill: #e8f4f8}
+style Service: {fill: #fff8e8}
+style Data: {fill: #e8f8e8}
+</code></pre>
+<h3 id="4-json-export">4. JSON Export</h3>
+<p><strong>File</strong>: <code>architecture.json</code><br>
+<strong>Tool</strong>: Programmatic processing, custom tools<br>
+<strong>Best for</strong>: Analyzing graph programmatically, CI/CD integration</p>
+<pre><code class="lang-json">{
+  &quot;nodes&quot;: [
+    {&quot;id&quot;: &quot;src/UI&quot;, &quot;type&quot;: &quot;folder&quot;, &quot;dependencies&quot;: 2},
+    {&quot;id&quot;: &quot;src/Service&quot;, &quot;type&quot;: &quot;folder&quot;, &quot;dependencies&quot;: 1},
+    {&quot;id&quot;: &quot;src/Data&quot;, &quot;type&quot;: &quot;folder&quot;, &quot;dependencies&quot;: 0}
+  ],
+  &quot;edges&quot;: [
+    {&quot;source&quot;: &quot;src/UI&quot;, &quot;target&quot;: &quot;src/Service&quot;, &quot;count&quot;: 10},
+    {&quot;source&quot;: &quot;src/Service&quot;, &quot;target&quot;: &quot;src/Data&quot;, &quot;count&quot;: 8}
+  ]
+}
+</code></pre>
+<h3 id="5-csv-export">5. CSV Export</h3>
+<p><strong>File</strong>: <code>architecture.csv</code><br>
+<strong>Tool</strong>: Excel, Google Sheets, CSV parsers<br>
+<strong>Best for</strong>: Analysis in spreadsheets, statistical tools</p>
+<pre><code class="lang-csv">Source,Target,Count,Type
+src/UI,src/Service,10,file
+src/Service,src/Data,8,file
+src/UI,NuGet:Newtonsoft.Json,3,external
+</code></pre>
+<h3 id="6-html-interactive-view">6. HTML Interactive View</h3>
+<p><strong>File</strong>: <code>architecture.html</code><br>
+<strong>Tool</strong>: Web browser<br>
+<strong>Best for</strong>: Interactive exploration, presentations</p>
+<p>Features:</p>
+<ul>
+<li>Click to expand/collapse nodes</li>
+<li>Hover for dependency details</li>
+<li>Search for specific components</li>
+<li>Export to PNG from browser</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<h3 id="export-all-formats">Export All Formats</h3>
+<pre><code class="lang-csharp">var graph = ProjectGraph(&quot;./MyProject.csproj&quot;);
+
+// Export to all formats
+await graph.ExportToFileAsync(GraphFormat.Mermaid, &quot;output/architecture.md&quot;);
+await graph.ExportToFileAsync(GraphFormat.DOT, &quot;output/architecture.dot&quot;);
+await graph.ExportToFileAsync(GraphFormat.D2, &quot;output/architecture.d2&quot;);
+await graph.ExportToFileAsync(GraphFormat.JSON, &quot;output/architecture.json&quot;);
+await graph.ExportToFileAsync(GraphFormat.CSV, &quot;output/architecture.csv&quot;);
+await graph.ExportToFileAsync(GraphFormat.HTML, &quot;output/architecture.html&quot;);
+</code></pre>
+<h3 id="folder-aggregation">Folder Aggregation</h3>
+<p>Reduce complexity by collapsing to folder level:</p>
+<pre><code class="lang-csharp">// Export at file level (detailed)
+var detailed = ProjectGraph(&quot;./MyProject.csproj&quot;);
+await detailed.ExportToFileAsync(GraphFormat.Mermaid, &quot;detailed.md&quot;);
+
+// Export at folder level (abstracted)
+var folderLevel = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(1);  // Group by immediate parent folder
+await folderLevel.ExportToFileAsync(GraphFormat.Mermaid, &quot;folders.md&quot;);
+
+// Export at area level (highly abstracted)
+var areaLevel = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(2);  // Group by first two levels
+await areaLevel.ExportToFileAsync(GraphFormat.Mermaid, &quot;areas.md&quot;);
+</code></pre>
+<p><strong>Folder depth examples</strong>:</p>
+<ul>
+<li>Depth 1: <code>src/Features/</code> → <code>src/</code></li>
+<li>Depth 2: <code>src/Features/Orders/</code> → <code>src/Features/</code></li>
+<li>Depth 3: <code>src/Features/Orders/Models/</code> → <code>src/Features/Orders/</code></li>
+</ul>
+<h3 id="filtering-dependencies">Filtering Dependencies</h3>
+<pre><code class="lang-csharp">// Include only internal dependencies (exclude NuGet packages)
+var internal = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .ExcludeExternalDependencies();
+await internal.ExportToFileAsync(GraphFormat.Mermaid, &quot;internal.md&quot;);
+
+// Focus on specific components
+var focused = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .FocusOn(&quot;src/Features/Orders&quot;);  // Only show Orders and its dependencies
+await focused.ExportToFileAsync(GraphFormat.Mermaid, &quot;orders.md&quot;);
+
+// Include external dependencies
+var full = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .IncludeExternalDependencies();
+await full.ExportToFileAsync(GraphFormat.Mermaid, &quot;full.md&quot;);
+</code></pre>
+<h2 id="advanced-scenarios">Advanced Scenarios</h2>
+<h3 id="generate-multiple-views">Generate Multiple Views</h3>
+<p>Create different views for different audiences:</p>
+<pre><code class="lang-csharp">var graph = ProjectGraph(&quot;./MyProject.csproj&quot;);
+
+// 1. Architecture view for architects
+var archView = graph
+    .CollapseToFolderDepth(2)
+    .ExcludeExternalDependencies();
+await archView.ExportToFileAsync(GraphFormat.Mermaid, &quot;architecture-high-level.md&quot;);
+
+// 2. Dependency view for developers
+var devView = graph
+    .CollapseToFolderDepth(1)
+    .IncludeExternalDependencies();
+await devView.ExportToFileAsync(GraphFormat.JSON, &quot;dependencies-detailed.json&quot;);
+
+// 3. External dependency view for security
+var extView = graph
+    .ExcludeInternalDependencies()
+    .IncludeExternalDependencies();
+await extView.ExportToFileAsync(GraphFormat.CSV, &quot;external-dependencies.csv&quot;);
+</code></pre>
+<h3 id="cycle-detection-with-visualization">Cycle Detection with Visualization</h3>
+<pre><code class="lang-csharp">// Find cycles using rules
+var cycleRule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**&quot;)
+    .Should()
+    .HaveNoCycles();
+
+var violations = await cycleRule.CheckAsync();
+
+if (violations.Count &gt; 0)
+{
+    // Export only the cycle subgraph
+    var graph = ProjectGraph(&quot;./MyProject.csproj&quot;);
+    var cycleNodes = violations
+        .OfType&lt;CyclicDependency&gt;()
+        .SelectMany(c =&gt; c.FilesInCycle)
+        .Distinct();
+    
+    var cycleView = graph.FocusOn(cycleNodes.ToArray());
+    await cycleView.ExportToFileAsync(GraphFormat.Mermaid, &quot;cycles.md&quot;);
+}
+</code></pre>
+<h3 id="cicd-integration">CI/CD Integration</h3>
+<p>Export graph automatically in CI/CD:</p>
+<pre><code class="lang-csharp">public class ArchitectureExportTask
+{
+    public async Task ExportArchitectureAsync(string projectPath, string outputDir)
+    {
+        var graph = ProjectGraph(projectPath);
+        
+        // Create output directory
+        Directory.CreateDirectory(outputDir);
+        
+        // Export multiple views
+        await graph
+            .CollapseToFolderDepth(2)
+            .ExcludeExternalDependencies()
+            .ExportToFileAsync(GraphFormat.Mermaid, 
+                Path.Combine(outputDir, &quot;architecture.md&quot;));
+        
+        await graph
+            .CollapseToFolderDepth(2)
+            .ExportToFileAsync(GraphFormat.DOT,
+                Path.Combine(outputDir, &quot;architecture.dot&quot;));
+        
+        await graph
+            .ExportToFileAsync(GraphFormat.JSON,
+                Path.Combine(outputDir, &quot;architecture.json&quot;));
+    }
+}
+</code></pre>
+<p><strong>Usage in GitHub Actions</strong>:</p>
+<pre><code class="lang-yaml">- name: Export Architecture
+  run: |
+    dotnet build
+    dotnet run --project ./tools/ArchExport.csproj -- \
+      --project ./src/MyProject.csproj \
+      --output ./docs/architecture
+    
+- name: Commit Changes
+  run: |
+    git add docs/architecture/**
+    git commit -m &quot;chore: update architecture diagrams&quot; || true
+    git push
+</code></pre>
+<h3 id="analysis-from-exported-data">Analysis from Exported Data</h3>
+<pre><code class="lang-csharp">// Read exported JSON for analysis
+var json = await File.ReadAllTextAsync(&quot;architecture.json&quot;);
+var graph = JsonConvert.DeserializeObject&lt;ArchitectureGraph&gt;(json);
+
+// Analyze statistics
+var statistics = new
+{
+    TotalNodes = graph.Nodes.Count,
+    TotalEdges = graph.Edges.Count,
+    AverageDependencies = graph.Edges.GroupBy(e =&gt; e.Source).Average(g =&gt; g.Count()),
+    MostDependedOn = graph.Edges
+        .GroupBy(e =&gt; e.Target)
+        .OrderByDescending(g =&gt; g.Count())
+        .First()
+        .Key,
+    LeastDependedOn = graph.Nodes
+        .Where(n =&gt; !graph.Edges.Any(e =&gt; e.Target == n.Id))
+        .ToArray()
+};
+
+Console.WriteLine($&quot;Total dependencies: {statistics.TotalEdges}&quot;);
+Console.WriteLine($&quot;Most depended on: {statistics.MostDependedOn}&quot;);
+</code></pre>
+<h2 id="format-specific-tips">Format-Specific Tips</h2>
+<h3 id="mermaid">Mermaid</h3>
+<ul>
+<li>Best for documentation and GitHub README</li>
+<li>Render online at <a href="https://mermaid.live">https://mermaid.live</a></li>
+<li>VS Code extension available</li>
+<li>Limited styling options</li>
+</ul>
+<h3 id="graphviz-dot">Graphviz (DOT)</h3>
+<ul>
+<li>Professional quality diagrams</li>
+<li>Export to SVG, PNG, PDF</li>
+<li>Manual layout control possible</li>
+<li>Steeper learning curve</li>
+</ul>
+<h3 id="d2">D2</h3>
+<ul>
+<li>Modern, readable syntax</li>
+<li>Interactive online editor</li>
+<li>Fast rendering</li>
+<li>Good for presentations</li>
+</ul>
+<h3 id="json">JSON</h3>
+<ul>
+<li>Program against graph structure</li>
+<li>Parse and analyze</li>
+<li>Import into custom tools</li>
+<li>Suitable for CI/CD processing</li>
+</ul>
+<h3 id="csv">CSV</h3>
+<ul>
+<li>Import into Excel/Sheets</li>
+<li>Statistical analysis</li>
+<li>Sharing with non-technical stakeholders</li>
+<li>Easy to diff in git</li>
+</ul>
+<h3 id="html">HTML</h3>
+<ul>
+<li>Interactive exploration</li>
+<li>No external tools needed</li>
+<li>Browser-based</li>
+<li>Good for stakeholder presentations</li>
+</ul>
+<h2 id="performance">Performance</h2>
+<h3 id="large-graphs">Large Graphs</h3>
+<p>For large projects (1000+ files):</p>
+<pre><code class="lang-csharp">// Aggregate to reduce complexity
+var simplified = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(3);          // Collapse deep paths
+await simplified.ExportToFileAsync(GraphFormat.Mermaid, &quot;simplified.md&quot;);
+
+// Or exclude external dependencies
+var internal = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .ExcludeExternalDependencies();
+await internal.ExportToFileAsync(GraphFormat.Mermaid, &quot;internal.md&quot;);
+
+// Or focus on area of interest
+var area = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .FocusOn(&quot;src/Features&quot;);
+await area.ExportToFileAsync(GraphFormat.Mermaid, &quot;features.md&quot;);
+</code></pre>
+<h3 id="caching">Caching</h3>
+<p>Graph is built once and cached:</p>
+<pre><code class="lang-csharp">var graph = ProjectGraph(&quot;./MyProject.csproj&quot;);
+
+var view1 = graph.CollapseToFolderDepth(1);
+var view2 = graph.CollapseToFolderDepth(2);
+// Both use same cached base graph
+
+var exp1 = await view1.ExportToFileAsync(GraphFormat.Mermaid, &quot;view1.md&quot;);
+var exp2 = await view2.ExportToFileAsync(GraphFormat.Mermaid, &quot;view2.md&quot;);
+// Each export is independent, no re-analysis
+</code></pre>
+<h2 id="testing">Testing</h2>
+<p>Validate exports in tests:</p>
+<pre><code class="lang-csharp">[TestFixture]
+public class GraphExportTests
+{
+    [Test]
+    public async Task ExportedGraphContainsAllNodes()
+    {
+        var graph = ProjectGraph(&quot;./MyProject.csproj&quot;);
+        var json = await graph.ExportToStringAsync(GraphFormat.JSON);
+        
+        dynamic data = JsonConvert.DeserializeObject(json);
+        var nodeCount = ((JArray)data[&quot;nodes&quot;]).Count;
+        
+        Assert.That(nodeCount, Is.GreaterThan(0), &quot;Graph should contain nodes&quot;);
+    }
+    
+    [Test]
+    public async Task MermaidExportIsValidSyntax()
+    {
+        var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+            .CollapseToFolderDepth(2);
+        
+        var mermaid = await graph.ExportToStringAsync(GraphFormat.Mermaid);
+        
+        // Basic syntax validation
+        Assert.That(mermaid, Does.Contain(&quot;graph&quot;));
+        Assert.That(mermaid, Does.Contain(&quot;--&gt;&quot;));
+    }
+    
+    [Test]
+    public async Task DOTExportIsValidGraphviz()
+    {
+        var graph = ProjectGraph(&quot;./MyProject.csproj&quot;);
+        var dot = await graph.ExportToStringAsync(GraphFormat.DOT);
+        
+        // Valid DOT starts with digraph
+        Assert.That(dot, Does.Match(@&quot;digraph\s+\w+\s*\{&quot;));
+    }
+}
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="issue-graph-is-too-complex">Issue: Graph is too complex</h3>
+<p><strong>Solution</strong>: Aggregate more aggressively:</p>
+<pre><code class="lang-csharp">// Instead of
+var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(1);
+
+// Try
+var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(3)
+    .ExcludeExternalDependencies();
+</code></pre>
+<h3 id="issue-missing-nodesedges">Issue: Missing nodes/edges</h3>
+<p><strong>Solution</strong>: Check filtering options:</p>
+<pre><code class="lang-csharp">// Make sure you're including what you need
+var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .IncludeExternalDependencies();  // If needed
+    // Don't call .ExcludeExternalDependencies() if you want them
+</code></pre>
+<h3 id="issue-export-file-is-empty">Issue: Export file is empty</h3>
+<p><strong>Solution</strong>: Verify project path and file selection:</p>
+<pre><code class="lang-bash"># Check project builds
+dotnet build ./MyProject.csproj
+
+# Verify Roslyn can analyze it
+dotnet tool install -g roslyn-analyzers
+</code></pre>
+<hr>
+<p>See also:</p>
+<ul>
+<li><a href="getting-started.html">Getting Started</a> — Quick start guide</li>
+<li><a href="file-rules.html">File-Based Rules</a> — Dependency validation</li>
+<li><a href="metrics.html">Metrics Analysis</a> — Code quality rules</li>
+<li><a href="slicing.html">Architecture Slicing</a> — Feature-based rules</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/graph-reporting.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

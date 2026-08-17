@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>ArchUnitCSharp Documentation | ArchUnitCSharp </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="ArchUnitCSharp Documentation | ArchUnitCSharp ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="">
+      <meta name="docfx:tocrel" content="">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/index.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="archunitcsharp-documentation">ArchUnitCSharp Documentation</h1>
+
+<p>Welcome to ArchUnitCSharp - A C#/.NET port of ArchUnitTS for architecture testing.</p>
+<h2 id="quick-links">Quick Links</h2>
+<ul>
+<li><a href="articles/getting-started.html">Getting Started</a></li>
+<li><a href="api/index.md">API Reference</a></li>
+<li><a href="../CONTRIBUTING.md">Contributing Guide</a></li>
+<li><a href="../CHANGELOG.md">Changelog</a></li>
+</ul>
+<h2 id="what-is-archunitcsharp">What is ArchUnitCSharp?</h2>
+<p>ArchUnitCSharp is a powerful architecture testing framework for C#/.NET applications. It allows you to:</p>
+<ul>
+<li><strong>Define architecture rules</strong> using a fluent API</li>
+<li><strong>Validate dependencies</strong> between layers and modules</li>
+<li><strong>Detect cycles</strong> in your codebase automatically</li>
+<li><strong>Measure code cohesion</strong> with LCOM metrics</li>
+<li><strong>Visualize dependencies</strong> in multiple formats (Mermaid, DOT, D2, HTML, JSON, CSV)</li>
+</ul>
+<h2 id="key-features">Key Features</h2>
+<h3 id="-architecture-rules">🏗️ Architecture Rules</h3>
+<p>Define and enforce architectural boundaries:</p>
+<ul>
+<li>File-based dependencies</li>
+<li>Layer isolation</li>
+<li>Module independence</li>
+<li>Cycle detection</li>
+</ul>
+<h3 id="-code-metrics">📊 Code Metrics</h3>
+<p>Analyze code quality:</p>
+<ul>
+<li>LCOM (Lack of Cohesion) calculation</li>
+<li>Cyclomatic complexity</li>
+<li>Method and field access patterns</li>
+<li>Cohesion scoring</li>
+</ul>
+<h3 id="-dependency-analysis">🔄 Dependency Analysis</h3>
+<p>Understand your codebase:</p>
+<ul>
+<li>Dependency graph extraction (via Roslyn)</li>
+<li>Cycle detection (Tarjan's SCC + Johnson's algorithms)</li>
+<li>Path normalization (Windows/Unix)</li>
+<li>Import classification</li>
+</ul>
+<h3 id="-visualization">📈 Visualization</h3>
+<p>Generate dependency graphs:</p>
+<ul>
+<li>Mermaid diagrams</li>
+<li>Graphviz DOT format</li>
+<li>D2 diagram language</li>
+<li>HTML interactive views</li>
+<li>JSON and CSV exports</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<pre><code class="lang-bash">dotnet add package ArchUnitCSharp
+</code></pre>
+<h2 id="quick-example">Quick Example</h2>
+<pre><code class="lang-csharp">using ArchUnitNet;
+
+// Define a rule
+var rule = ArchUnit.Metrics()
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+
+// Check the rule
+var violations = await rule.CheckAsync();
+
+if (violations.Count &gt; 0)
+{
+    foreach (var violation in violations)
+    {
+        Console.WriteLine(violation);
+    }
+}
+</code></pre>
+<h2 id="learn-more">Learn More</h2>
+<ul>
+<li><a href="articles/getting-started.html">Getting Started Guide</a></li>
+<li><a href="articles/file-rules.html">File-Based Rules</a></li>
+<li><a href="articles/metrics.html">Metrics Analysis</a></li>
+<li><a href="articles/slicing.html">Slice-Based Architecture</a></li>
+<li><a href="articles/graph-reporting.html">Graph Visualization</a></li>
+</ul>
+<h2 id="project-status">Project Status</h2>
+<p><strong>Current Version</strong>: 2.4.0<br>
+<strong>Status</strong>: Active Development<br>
+<strong>License</strong>: Apache 2.0</p>
+<h3 id="latest-release">Latest Release</h3>
+<ul>
+<li>✨ Phase 3b: Metrics FluentAPI</li>
+<li>✨ Phase 3c: Slicing Module</li>
+<li>✨ Phase 4a: Graph Reporting (6 formats)</li>
+<li>✨ Phase 4b: Testing Integration</li>
+</ul>
+<h2 id="contributing">Contributing</h2>
+<p>We welcome contributions! See <a href="../CONTRIBUTING.md">CONTRIBUTING.md</a> for guidelines.</p>
+<h2 id="support">Support</h2>
+<ul>
+<li>📖 <a href="https://archunitcsharp.dev">Documentation</a></li>
+<li>🐛 <a href="https://github.com/LukasNiessen/ArchUnitTS/issues">Report Issues</a></li>
+<li>💬 <a href="https://github.com/LukasNiessen/ArchUnitTS/discussions">Discussions</a></li>
+<li>📧 <a href="mailto:info@example.com">Contact</a></li>
+</ul>
+<hr>
+<p>Made with ❤️ by the ArchUnit community</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/index.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "source_base_path": "/home/runner/work/ArchUnitNET/ArchUnitNET/docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/file-rules.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/file-rules.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/graph-reporting.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/graph-reporting.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/metrics.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/metrics.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/slicing.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/slicing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

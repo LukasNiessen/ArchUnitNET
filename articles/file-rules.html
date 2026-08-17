@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>File-Based Architecture Rules | ArchUnitCSharp </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="File-Based Architecture Rules | ArchUnitCSharp ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="">
+      <meta name="docfx:tocrel" content="">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/file-rules.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="file-based-architecture-rules">File-Based Architecture Rules</h1>
+
+<p>File-based rules are the most common way to enforce architectural boundaries in ArchUnitCSharp. They work on source file dependencies extracted via Roslyn.</p>
+<h2 id="overview">Overview</h2>
+<p>A file-based rule validates that certain files/folders follow specific dependency patterns:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(projectPath)
+    .InPath(sourcePattern)              // Step 1: Select source files
+    .Should() or .ShouldNot()           // Step 2: Specify expectation
+    .DependOnFiles()                    // Step 3: Define relationship
+    .InFolder(targetPattern);           // Step 4: Specify target
+
+await rule.CheckAsync();
+</code></pre>
+<h2 id="file-selection">File Selection</h2>
+<h3 id="by-folder">By Folder</h3>
+<p>Select all files within a folder hierarchy:</p>
+<pre><code class="lang-csharp">ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InFolder(&quot;src/UI/**&quot;)              // All files in UI folder
+    .Should()
+    .DependOnFiles()
+    .InFolder(&quot;src/Common/**&quot;);
+</code></pre>
+<h3 id="by-path-pattern">By Path Pattern</h3>
+<p>Use glob patterns for precise selection:</p>
+<pre><code class="lang-csharp">ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**/*.cs&quot;)              // All .cs files
+    .InPath(&quot;src/Features/*/Service.cs&quot;) // Specific file naming pattern
+    .Should()
+    .DependOnFiles()
+    .InFolder(&quot;src/Domain/**&quot;);
+</code></pre>
+<h3 id="by-regex">By Regex</h3>
+<p>For complex patterns, use regex:</p>
+<pre><code class="lang-csharp">ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(@&quot;src/(UI|Components)/.*\.cs$&quot;)  // Regex pattern
+    .Should()
+    .DependOnFiles()
+    .InFolder(@&quot;src/Services/.*\.cs$&quot;);
+</code></pre>
+<h3 id="with-exclusions">With Exclusions</h3>
+<p>Exclude patterns from selection:</p>
+<pre><code class="lang-csharp">ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**/*.cs&quot;)
+    .Except(&quot;src/**/Generated.cs&quot;)      // Exclude generated files
+    .Except(&quot;src/**/Models/**&quot;)         // Exclude model classes
+    .Should()
+    .DependOnFiles()
+    .InFolder(&quot;src/Domain/**&quot;);
+</code></pre>
+<h2 id="dependency-rules">Dependency Rules</h2>
+<h3 id="rule-1-should-depend-on">Rule 1: Should Depend On</h3>
+<p>Enforce that selected files only depend on specific targets:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/UI/**&quot;)
+    .Should()
+    .DependOnFiles()
+    .InFolder(&quot;src/Components/**&quot;);
+
+var violations = await rule.CheckAsync();
+// violations: any files in UI depending on things OUTSIDE Components
+</code></pre>
+<p>Use case: UI layer should only use component library.</p>
+<h3 id="rule-2-should-not-depend-on">Rule 2: Should NOT Depend On</h3>
+<p>Enforce that selected files avoid specific dependencies:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Domain/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Infrastructure/**&quot;);
+
+var violations = await rule.CheckAsync();
+// violations: any files in Domain importing from Infrastructure
+</code></pre>
+<p>Use case: Domain model should not depend on infrastructure.</p>
+<h3 id="rule-3-should-have-no-cycles">Rule 3: Should Have No Cycles</h3>
+<p>Detect circular dependencies automatically:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**/*.cs&quot;)
+    .Should()
+    .HaveNoCycles();
+
+var violations = await rule.CheckAsync();
+// violations: each cyclic dependency group
+// e.g., &quot;A → B → C → A&quot;
+</code></pre>
+<p><strong>Algorithm</strong>: Tarjan's Strongly Connected Components (O(V+E))<br>
+<strong>Limitations</strong>: None (finds all elementary cycles)</p>
+<h3 id="rule-4-match-pattern">Rule 4: Match Pattern</h3>
+<p>Advanced pattern matching for complex scenarios:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Features/*/index.cs&quot;)  // Barrel exports
+    .Should()
+    .MatchPattern(@&quot;Features/[^/]+/index\.cs&quot;);
+
+var violations = await rule.CheckAsync();
+// violations: index.cs files not following barrel export pattern
+</code></pre>
+<h2 id="advanced-patterns">Advanced Patterns</h2>
+<h3 id="layered-architecture-3-tier">Layered Architecture (3-tier)</h3>
+<pre><code class="lang-csharp">var uiNotUsingData = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Presentation/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Data/**&quot;);
+
+var businessNotUsingPresentation = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Business/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Presentation/**&quot;);
+
+var violations = new[]
+{
+    await uiNotUsingData.CheckAsync(),
+    await businessNotUsingPresentation.CheckAsync()
+};
+</code></pre>
+<h3 id="hexagonal-ports--adapters">Hexagonal (Ports &amp; Adapters)</h3>
+<pre><code class="lang-csharp">var adaptersShouldUsePort = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Adapters/**&quot;)
+    .Should()
+    .DependOnFiles()
+    .InFolder(&quot;src/Ports/**&quot;);
+
+var domainNotUsingAdapters = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Domain/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Adapters/**&quot;);
+</code></pre>
+<h3 id="feature-isolation-scam">Feature-Isolation (SCAM)</h3>
+<pre><code class="lang-csharp">// Features should not cross-depend
+var featureA = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Features/A/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Features/B/**&quot;);
+
+var featureB = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Features/B/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Features/A/**&quot;);
+</code></pre>
+<h2 id="import-types">Import Types</h2>
+<p>ArchUnitCSharp categorizes imports by type:</p>
+<pre><code class="lang-csharp">public enum ImportKind
+{
+    Using,              // using statement
+    ProjectReference,   // &lt;ProjectReference&gt; in .csproj
+    PackageReference,   // NuGet package
+    FrameworkReference  // .NET framework/runtime
+}
+</code></pre>
+<p>Filter by import type (future enhancement):</p>
+<pre><code class="lang-csharp">// Currently all import types are considered
+var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Domain/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Infrastructure/**&quot;);
+    // .OfImportKind(ImportKind.ProjectReference)  // Future API
+</code></pre>
+<h2 id="debugging-violations">Debugging Violations</h2>
+<h3 id="view-violation-details">View Violation Details</h3>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/UI/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Internal/**&quot;);
+
+var violations = await rule.CheckAsync();
+
+foreach (var violation in violations)
+{
+    if (violation is ViolatingFileDependency fileDep)
+    {
+        Console.WriteLine($&quot;File: {fileDep.Source}&quot;);
+        Console.WriteLine($&quot;Imports: {fileDep.Target}&quot;);
+        Console.WriteLine($&quot;Type: {fileDep.ViolationType}&quot;);
+    }
+    else if (violation is CyclicDependency cycle)
+    {
+        Console.WriteLine($&quot;Cycle: {string.Join(&quot; → &quot;, cycle.FilesInCycle)}&quot;);
+    }
+}
+</code></pre>
+<h3 id="export-architecture-for-analysis">Export Architecture for Analysis</h3>
+<pre><code class="lang-csharp">// Export full graph for manual inspection
+var graph = ProjectGraph(&quot;./MyProject.csproj&quot;);
+await graph.ExportToFileAsync(GraphFormat.DOT, &quot;architecture.dot&quot;);
+await graph.ExportToFileAsync(GraphFormat.Mermaid, &quot;architecture.md&quot;);
+
+// Use Graphviz or Mermaid to visualize:
+// dot -Tsvg architecture.dot -o architecture.svg
+// https://mermaid.live (paste architecture.md)
+</code></pre>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="large-projects-1000-files">Large Projects (1000+ files)</h3>
+<p>For better performance:</p>
+<pre><code class="lang-csharp">// Option 1: Use folder aggregation
+var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(2);  // Reduces nodes significantly
+
+// Option 2: Exclude external dependencies
+var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**&quot;)
+    .ExcludeExternalDependencies()  // Skip NuGet packages
+    .Should()
+    .HaveNoCycles();
+
+// Option 3: Run less frequently
+// Cache results, run only on main branch or nightly
+</code></pre>
+<h3 id="caching">Caching</h3>
+<p>Results are cached within a single rule execution:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**&quot;);
+
+var violations1 = await rule.CheckAsync();  // Full analysis
+var violations2 = await rule.CheckAsync();  // Returns cached result
+</code></pre>
+<p>For different rules, analysis is repeated. To reuse analysis:</p>
+<pre><code class="lang-csharp">// Extract graph once, use for multiple rules
+var graph = await ProjectGraph(&quot;./MyProject.csproj&quot;).BuildAsync();
+
+var cycles = graph.FindCycles();
+var dependencies = graph.GetDependencies(&quot;src/UI/**&quot;);
+</code></pre>
+<h2 id="common-issues">Common Issues</h2>
+<h3 id="issue-rule-finds-violations-on-legitimate-imports">Issue: Rule finds violations on legitimate imports</h3>
+<p><strong>Solution</strong>: Check your pattern matching:</p>
+<pre><code class="lang-csharp">// ❌ Too broad
+var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/UI/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/**&quot;);  // Blocks ALL internal dependencies!
+
+// ✅ Specific
+var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/UI/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Internal/**&quot;);  // Only blocks internal folder
+</code></pre>
+<h3 id="issue-circular-dependency-false-positives">Issue: Circular dependency false positives</h3>
+<p><strong>Solution</strong>: Verify the cycle actually exists:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**&quot;)
+    .Should()
+    .HaveNoCycles();
+
+var violations = await rule.CheckAsync();
+if (violations.Count &gt; 0)
+{
+    // Each violation is one cycle
+    // Print to verify it's real
+    foreach (var v in violations)
+    {
+        Console.WriteLine(v);
+    }
+}
+</code></pre>
+<h3 id="issue-no-dependencies-found">Issue: No dependencies found</h3>
+<p><strong>Solution</strong>: Ensure project compiles and contains proper <code>using</code> statements:</p>
+<pre><code class="lang-bash"># First, verify project compiles
+dotnet build
+
+# Then, check it has dependencies
+grep -r &quot;using &quot; src/
+</code></pre>
+<h2 id="testing">Testing</h2>
+<p>Integrate file-based rules into your test suite:</p>
+<pre><code class="lang-csharp">[TestFixture]
+public class ArchitectureTests
+{
+    private const string ProjectPath = &quot;../../../src/MyProject/MyProject.csproj&quot;;
+
+    [Test]
+    public async Task DomainShouldNotDependOnInfrastructure()
+    {
+        var rule = ProjectFiles(ProjectPath)
+            .InPath(&quot;src/Domain/**&quot;)
+            .ShouldNot()
+            .DependOnFiles()
+            .InFolder(&quot;src/Infrastructure/**&quot;);
+
+        var violations = await rule.CheckAsync();
+        Assert.That(violations, Is.Empty, 
+            $&quot;Domain layer has {violations.Count} illegal dependencies&quot;);
+    }
+
+    [Test]
+    public async Task NoCyclicDependencies()
+    {
+        var rule = ProjectFiles(ProjectPath)
+            .InPath(&quot;src/**&quot;)
+            .Should()
+            .HaveNoCycles();
+
+        var violations = await rule.CheckAsync();
+        Assert.That(violations, Is.Empty, 
+            $&quot;Found {violations.Count} circular dependencies&quot;);
+    }
+}
+</code></pre>
+<hr>
+<p>See also:</p>
+<ul>
+<li><a href="getting-started.html">Getting Started</a> — Quick start guide</li>
+<li><a href="metrics.html">Metrics Analysis</a> — Code quality rules</li>
+<li><a href="slicing.html">Architecture Slicing</a> — Feature-based rules</li>
+<li><a href="graph-reporting.html">Graph Visualization</a> — Export dependencies</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/file-rules.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

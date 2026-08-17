@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Getting Started with ArchUnitCSharp | ArchUnitCSharp </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Getting Started with ArchUnitCSharp | ArchUnitCSharp ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="">
+      <meta name="docfx:tocrel" content="">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/getting-started.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.png" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="getting-started-with-archunitcsharp">Getting Started with ArchUnitCSharp</h1>
+
+<p>Welcome to ArchUnitCSharp! This guide will help you set up your first architecture test in less than 5 minutes.</p>
+<h2 id="installation">Installation</h2>
+<h3 id="step-1-install-the-nuget-package">Step 1: Install the NuGet Package</h3>
+<pre><code class="lang-bash">dotnet add package ArchUnitCSharp
+</code></pre>
+<p>Or via the Package Manager in Visual Studio:</p>
+<pre><code>Install-Package ArchUnitCSharp
+</code></pre>
+<h3 id="step-2-create-your-first-test">Step 2: Create Your First Test</h3>
+<p>Create a new test file in your test project:</p>
+<pre><code class="lang-csharp">using ArchUnitNet;
+using Xunit;
+
+public class ArchitectureTests
+{
+    [Fact]
+    public async Task FilesShouldFollowLayering()
+    {
+        var rule = ProjectFiles(&quot;./src/MyProject.csproj&quot;)
+            .InPath(&quot;src/**/*.cs&quot;)
+            .ShouldNot()
+            .DependOnFiles()
+            .InFolder(&quot;src/Internal/**&quot;);
+
+        var violations = await rule.CheckAsync();
+        Assert.Empty(violations);
+    }
+}
+</code></pre>
+<h2 id="core-concepts">Core Concepts</h2>
+<h3 id="1-rule-builder-pattern">1. Rule Builder Pattern</h3>
+<p>ArchUnitCSharp uses a fluent API for building rules:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(projectPath)
+    .InPath(pattern)        // Select files
+    .Should()               // Define expectation
+    .NotDependOnFiles()     // Specify rule
+    .InFolder(otherPattern) // Select dependency target
+    // .CheckAsync()        // Execute (shown in examples)
+</code></pre>
+<p><strong>Components</strong>:</p>
+<ul>
+<li><strong>Selection</strong>: Which files to validate (<code>.InPath()</code>, <code>.InFolder()</code>)</li>
+<li><strong>Precondition</strong>: <code>.Should()</code> (positive) or <code>.ShouldNot()</code> (negative)</li>
+<li><strong>Rule</strong>: What relationship to enforce (<code>.DependOnFiles()</code>, <code>.HaveNoCycles()</code>)</li>
+<li><strong>Target</strong>: What files/patterns the rule applies to</li>
+<li><strong>Execution</strong>: <code>.CheckAsync()</code> returns <code>Violation[]</code></li>
+</ul>
+<h3 id="2-violations">2. Violations</h3>
+<p>Each rule returns a list of violations if checks fail:</p>
+<pre><code class="lang-csharp">var violations = await rule.CheckAsync();
+
+foreach (var violation in violations)
+{
+    Console.WriteLine($&quot;Source: {violation.Source}&quot;);
+    Console.WriteLine($&quot;Target: {violation.Target}&quot;);
+    Console.WriteLine($&quot;Type: {violation.ViolationType}&quot;);
+}
+</code></pre>
+<h3 id="3-async-first-design">3. Async-First Design</h3>
+<p>All operations are async to support non-blocking I/O:</p>
+<pre><code class="lang-csharp">// All execution is async
+var violations = await rule.CheckAsync();
+
+// Errors are wrapped in TechnicalError or UserError
+if (violations.OfType&lt;TechnicalError&gt;().Any())
+{
+    // Handle errors
+}
+</code></pre>
+<h2 id="common-patterns">Common Patterns</h2>
+<h3 id="pattern-1-layered-architecture">Pattern 1: Layered Architecture</h3>
+<p>Enforce that UI layer doesn't depend on internal services:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/UI/**&quot;)
+    .ShouldNot()
+    .DependOnFiles()
+    .InFolder(&quot;src/Services/Internal/**&quot;);
+
+var violations = await rule.CheckAsync();
+if (violations.Count &gt; 0)
+{
+    throw new AssertionFailedException(
+        $&quot;UI layer violates internal service boundary ({violations.Count} violations)&quot;);
+}
+</code></pre>
+<h3 id="pattern-2-cycle-detection">Pattern 2: Cycle Detection</h3>
+<p>Prevent circular dependencies automatically:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**/*.cs&quot;)
+    .Should()
+    .HaveNoCycles();
+
+var violations = await rule.CheckAsync();
+// violations contains any cyclic dependencies found
+</code></pre>
+<h3 id="pattern-3-public-api-boundaries">Pattern 3: Public API Boundaries</h3>
+<p>Enforce public/internal separation using index files:</p>
+<pre><code class="lang-csharp">var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/Features/**/index.cs&quot;)
+    .Should()
+    .DependOnFiles()
+    .MatchPattern(@&quot;Features/[^/]+/index\.cs&quot;);
+
+var violations = await rule.CheckAsync();
+</code></pre>
+<h3 id="pattern-4-code-metrics-lcom">Pattern 4: Code Metrics (LCOM)</h3>
+<p>Ensure high cohesion in your classes:</p>
+<pre><code class="lang-csharp">var rule = Metrics()
+    .Methods()
+    .LCOM96a()
+    .ShouldBeLessThan(0.5);
+
+var violations = await rule.CheckAsync();
+// Finds classes with low cohesion (too many independent method groups)
+</code></pre>
+<h3 id="pattern-5-architecture-slicing">Pattern 5: Architecture Slicing</h3>
+<p>Validate layered or feature-based architecture:</p>
+<pre><code class="lang-csharp">var rule = ProjectSlices()
+    .DefinedBy(&quot;src/{Slice}/**&quot;)
+    .Should()
+    .AdhereToDefinedSlices();
+
+var violations = await rule.CheckAsync();
+</code></pre>
+<h2 id="testing-integration">Testing Integration</h2>
+<h3 id="with-xunit">With xUnit</h3>
+<pre><code class="lang-csharp">public class ArchitectureTests
+{
+    [Fact]
+    public async Task CoreLayerShouldNotDependOnUI()
+    {
+        var rule = ProjectFiles(&quot;./src/MyApp.csproj&quot;)
+            .InPath(&quot;src/Core/**&quot;)
+            .ShouldNot()
+            .DependOnFiles()
+            .InFolder(&quot;src/UI/**&quot;);
+
+        var violations = await rule.CheckAsync();
+        Assert.Empty(violations); // Fails if violations found
+    }
+
+    [Theory]
+    [InlineData(&quot;src/Features/*/index.cs&quot;)]
+    public async Task FeatureIndexFilesShouldExist(string pattern)
+    {
+        var rule = ProjectFiles(&quot;./src/MyApp.csproj&quot;)
+            .InPath(pattern);
+        // Custom validation logic
+    }
+}
+</code></pre>
+<h3 id="with-nunit">With NUnit</h3>
+<pre><code class="lang-csharp">[TestFixture]
+public class ArchitectureTests
+{
+    [Test]
+    public async Task CoreLayerShouldNotDependOnUI()
+    {
+        var rule = ProjectFiles(&quot;./src/MyApp.csproj&quot;)
+            .InPath(&quot;src/Core/**&quot;)
+            .ShouldNot()
+            .DependOnFiles()
+            .InFolder(&quot;src/UI/**&quot;);
+
+        var violations = await rule.CheckAsync();
+        Assert.That(violations, Is.Empty);
+    }
+}
+</code></pre>
+<h2 id="advanced-topics">Advanced Topics</h2>
+<h3 id="working-with-patterns">Working with Patterns</h3>
+<p>ArchUnitCSharp supports glob patterns with exclusions:</p>
+<pre><code class="lang-csharp">// Glob pattern with negation
+var rule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(&quot;src/**/*.cs&quot;)              // All .cs files
+    .Except(&quot;src/**/Generated.cs&quot;)      // Except generated files
+    .Should()
+    .NotDependOnFiles()
+    .InFolder(&quot;src/Internal/**&quot;);
+
+// Regex patterns also supported
+var regexRule = ProjectFiles(&quot;./MyProject.csproj&quot;)
+    .InPath(@&quot;src/.*Service\.cs$&quot;)     // Regex pattern
+    .Should()
+    .DependOnFiles()
+    .InFolder(&quot;src/Domain/**&quot;);
+</code></pre>
+<h3 id="visualizing-dependencies">Visualizing Dependencies</h3>
+<p>Export your architecture as a diagram:</p>
+<pre><code class="lang-csharp">var graph = ProjectGraph(&quot;./MyProject.csproj&quot;)
+    .CollapseToFolderDepth(2)           // Aggregate to folder level
+    .ExcludeExternalDependencies();     // Only internal edges
+
+// Export to multiple formats
+await graph.ExportToFileAsync(GraphFormat.Mermaid, &quot;architecture.md&quot;);
+await graph.ExportToFileAsync(GraphFormat.DOT, &quot;architecture.dot&quot;);
+await graph.ExportToFileAsync(GraphFormat.D2, &quot;architecture.d2&quot;);
+</code></pre>
+<h3 id="custom-analysis">Custom Analysis</h3>
+<p>Combine multiple rules:</p>
+<pre><code class="lang-csharp">var rules = new[]
+{
+    ProjectFiles(&quot;./MyProject.csproj&quot;)
+        .InPath(&quot;src/UI/**&quot;)
+        .ShouldNot()
+        .DependOnFiles()
+        .InFolder(&quot;src/Services/Internal/**&quot;),
+
+    ProjectFiles(&quot;./MyProject.csproj&quot;)
+        .InPath(&quot;src/**&quot;)
+        .Should()
+        .HaveNoCycles(),
+
+    Metrics()
+        .Methods()
+        .LCOM96a()
+        .ShouldBeLessThan(0.5)
+};
+
+var allViolations = new List&lt;Violation&gt;();
+foreach (var rule in rules)
+{
+    var violations = await rule.CheckAsync();
+    allViolations.AddRange(violations);
+}
+
+if (allViolations.Count &gt; 0)
+{
+    Console.WriteLine($&quot;Found {allViolations.Count} architecture violations&quot;);
+}
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="issue-project-file-not-found">Issue: &quot;Project file not found&quot;</h3>
+<p><strong>Solution</strong>: Ensure the path to your .csproj file is correct and relative to the test execution directory.</p>
+<pre><code class="lang-csharp">// Use full path if needed
+var rule = ProjectFiles(&quot;C:/Full/Path/To/MyProject.csproj&quot;);
+// Or relative from test project
+var rule = ProjectFiles(&quot;../../src/MyProject.csproj&quot;);
+</code></pre>
+<h3 id="issue-no-dependencies-found">Issue: &quot;No dependencies found&quot;</h3>
+<p><strong>Solution</strong>: Verify your project builds successfully and contains <code>using</code> statements. ArchUnitCSharp uses Roslyn to extract dependencies from compiled metadata.</p>
+<h3 id="issue-slow-analysis-on-large-projects">Issue: &quot;Slow analysis on large projects&quot;</h3>
+<p><strong>Solution</strong>: ArchUnitCSharp caches results. For large projects:</p>
+<ol>
+<li>Run analysis once per CI/CD pipeline (not per test)</li>
+<li>Use <code>.CollapseToFolderDepth()</code> to reduce graph complexity</li>
+<li>Consider splitting into multiple smaller rules</li>
+</ol>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li>Read the <a href="file-rules.html">File-Based Rules Guide</a> for detailed pattern matching</li>
+<li>Learn about <a href="metrics.html">Metrics Analysis</a> for code quality</li>
+<li>Explore <a href="slicing.html">Architecture Slicing</a> for layered designs</li>
+<li>Check out <a href="graph-reporting.html">Graph Visualization</a> for dependency diagrams</li>
+</ul>
+<h2 id="examples-repository">Examples Repository</h2>
+<p>For complete working examples, see the test fixtures:</p>
+<ul>
+<li><code>tests/Files/Integration/Samples/AngularLike</code> — Public API boundaries</li>
+<li><code>tests/Files/Integration/Samples/SimpleProject</code> — Cycle detection</li>
+<li><code>tests/Files/Integration/Samples/LayeredArch</code> — Layered architecture</li>
+<li><code>tests/Metrics/Samples/MetricsTestProject</code> — LCOM cohesion analysis</li>
+</ul>
+<h2 id="questions">Questions?</h2>
+<ul>
+<li>📖 <a href="../api/index.md">Full API Reference</a></li>
+<li>🐛 <a href="https://github.com/LukasNiessen/ArchUnitNET/issues">Report Issues</a></li>
+<li>💬 <a href="https://github.com/LukasNiessen/ArchUnitNET/discussions">GitHub Discussions</a></li>
+<li>📧 Contributing? See <a href="../../CONTRIBUTING.md">CONTRIBUTING.md</a></li>
+</ul>
+<hr>
+<p>Happy architecture testing! 🎉</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/LukasNiessen/ArchUnitTS/blob/main/docs/articles/getting-started.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
