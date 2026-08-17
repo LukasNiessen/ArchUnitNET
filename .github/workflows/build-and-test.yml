@@ -37,8 +37,12 @@ jobs:
       run: dotnet build ArchUnitNET.sln --configuration Release --no-restore
 
     - name: Run tests
-      continue-on-error: true
-      run: dotnet test --configuration Release --no-build --logger "console;verbosity=minimal" --collect:"XPlat Code Coverage"
+      run: >-
+        dotnet test tests/ArchUnitNet.Tests/ArchUnitNet.Tests.csproj
+        --configuration Release
+        --no-build
+        --logger "console;verbosity=minimal"
+        --collect:"XPlat Code Coverage"
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest'

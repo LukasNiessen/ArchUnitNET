@@ -36,7 +36,11 @@ jobs:
       run: dotnet build ArchUnitNET.sln -c Release --no-restore
 
     - name: Run tests before release
-      run: dotnet test ArchUnitNET.sln -c Release --no-build --logger "console;verbosity=minimal"
+      run: >-
+        dotnet test tests/ArchUnitNet.Tests/ArchUnitNet.Tests.csproj
+        -c Release
+        --no-build
+        --logger "console;verbosity=minimal"
 
     - name: Create NuGet package
       run: >-
