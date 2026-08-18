@@ -483,6 +483,7 @@ ArchUnit for .NET brings the architecture-testing approach used by ArchUnitTS to
 
 ### Maintainers
 
+- **[Sina Mohammad Rezaei](https://github.com/SinaRezaeiiiii)** - Tech Lead & Maintainer
 - **[LukasNiessen](https://github.com/LukasNiessen)** - Maintainer
 
 ### Contributors
