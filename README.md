@@ -2,18 +2,18 @@
 
 <div align="center" name="top">
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/LukasNiessen/ArchUnitNET/blob/main/LICENSE) [![Build & tests](https://img.shields.io/github/actions/workflow/status/LukasNiessen/ArchUnitNET/build-and-test.yml?branch=main&label=build%20%26%20tests)](https://github.com/LukasNiessen/ArchUnitNET/actions/workflows/build-and-test.yml) [![NuGet version](https://img.shields.io/nuget/vpre/ArchUnit.svg)](https://www.nuget.org/packages/ArchUnit/)<br>
-[![NuGet downloads](https://img.shields.io/nuget/dt/ArchUnit.svg?color=007ec6)](https://www.nuget.org/packages/ArchUnit/) [![GitHub stars](https://img.shields.io/github/stars/LukasNiessen/ArchUnitNET.svg)](https://github.com/LukasNiessen/ArchUnitNET)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/LukasNiessen/ArchUnitNET/blob/main/LICENSE) [![Build & tests](https://img.shields.io/github/actions/workflow/status/LukasNiessen/ArchUnitNET/build-and-test.yml?branch=main&label=build%20%26%20tests)](https://github.com/LukasNiessen/ArchUnitNET/actions/workflows/build-and-test.yml) [![GitHub stars](https://img.shields.io/github/stars/LukasNiessen/ArchUnitNET.svg)](https://github.com/LukasNiessen/ArchUnitNET)<br>
+[![NuGet downloads](https://img.shields.io/nuget/dt/ArchUnit.svg?color=007ec6)](https://www.nuget.org/packages/ArchUnit/)
 
 </div>
 
-> **Alpha prerelease:** ArchUnit for .NET is under active development. APIs and behavior may change, and the full test suite is not yet green. Use this release for evaluation only.
+> **Alpha prerelease:** ArchUnit for .NET is under active development. APIs and behavior may change, and the [full test suite is not yet green](https://github.com/LukasNiessen/ArchUnitNET/issues/45). Use this release for evaluation only.
 
-Enforce architecture rules in C# and .NET projects. Check dependency directions, detect circular dependencies, validate layers, measure cohesion, and generate reports. Integrates with xUnit, NUnit, MSTest, and any testing framework that can assert on returned violations.
+Enforce architecture rules in C# and .NET projects. Check dependency directions, detect circular dependencies, validate layers, and generate reports. Integrates with xUnit, NUnit, MSTest, and any testing framework that can assert on returned violations. Metric builders are included but remain experimental.
 
 A .NET implementation inspired by [ArchUnitTS](https://github.com/LukasNiessen/ArchUnitTS) and the original [ArchUnit](https://github.com/TNG/ArchUnit). This project is not affiliated with TNG.
 
-[Setup](#-setup) • [Use Cases](#-use-cases) • [Features](#-features) • [Pattern Matching](#-pattern-matching-system) • [Contributing](https://github.com/LukasNiessen/ArchUnitNET/blob/main/CONTRIBUTING.md) • [Documentation](https://lukasniessen.github.io/ArchUnitNET/)
+[Setup](#-setup) • [Use Cases](#-use-cases) • [Features](#-features) • [Pattern Matching](#-pattern-matching-system) • [Contributing](https://github.com/LukasNiessen/ArchUnitNET/blob/main/CONTRIBUTING.md) • [Documentation](https://github.com/LukasNiessen/ArchUnitNET/tree/main/docs)
 
 ## ⚡ 5 min Quickstart
 
@@ -59,16 +59,16 @@ public async Task PresentationShouldNotDependOnData()
 }
 ```
 
-Lastly, add a code-metric rule for a specific class.
+Lastly, add a naming rule for one part of the project.
 
 ```csharp
 [Fact]
-public async Task OrderServiceShouldHaveHighCohesion()
+public async Task ServicesShouldUseTheServiceSuffix()
 {
-    var rule = ArchUnit.Metrics<OrderService>()
-        .Methods()
-        .LCOM96a()
-        .ShouldBeLessThan(0.5);
+    var rule = ArchUnit.ProjectFiles("./MyProject.csproj")
+        .InFolder("src/Services")
+        .Should()
+        .HaveName("*Service.cs");
 
     await rule.PassesAsync();
 }
@@ -187,7 +187,9 @@ var newViolations = violations.WithoutBaseline(baseline);
 
 ## 🐣 Features
 
-This is an overview of what you can do with ArchUnit for .NET.
+This is the public API surface currently included in ArchUnit for .NET. These examples are grounded
+in symbols that exist in the source, but the modules are not presented as stable while the
+[cross-platform test suite remains red](https://github.com/LukasNiessen/ArchUnitNET/issues/45).
 
 ### Circular Dependencies
 
@@ -230,7 +232,12 @@ await rule.PassesAsync();
 
 ### Code Metrics
 
-LCOM cohesion and count thresholds can target concrete .NET types.
+The repository contains Roslyn-based class extraction, LCOM calculations, count builders, and
+threshold conditions. The public type-targeted entry point is still experimental:
+[`ArchUnit.Metrics<T>()` can currently return an empty result without analyzing `T`](https://github.com/LukasNiessen/ArchUnitNET/issues/46).
+Do not rely on it as an enforcement gate until that issue is resolved.
+
+Current experimental API shape:
 
 ```csharp
 var cohesionRule = ArchUnit.Metrics<OrderService>()
@@ -244,7 +251,9 @@ var methodCountRule = ArchUnit.Metrics<OrderService>()
     .ShouldHaveAtMost(20);
 ```
 
-Supported cohesion variants include LCOM1, LCOM96a, LCOM96b, and LCOM1995. Count rules cover methods, fields, and field access.
+The implemented builder surface includes LCOM1, LCOM96a, LCOM96b, and LCOM1995 plus method,
+field, and field-access counts. These names describe the current API surface, not a guarantee that
+the type-targeted rule has analyzed its subject.
 
 ### Custom Rules
 
@@ -328,7 +337,9 @@ Architecture violations can be exported for people and CI systems:
 - JSON for programmatic processing
 - Text for build artifacts and logs
 
-Metrics reports are also available in HTML and JSON. Reporting remains experimental in the alpha releases.
+Metrics reports are available in HTML. Violation reports support HTML, SARIF, JSON, and text.
+Reporting remains experimental in the alpha releases, and some exporter tests are currently part
+of the failing suite tracked in [issue #45](https://github.com/LukasNiessen/ArchUnitNET/issues/45).
 
 ### Configuration and Baselines
 
@@ -410,15 +421,15 @@ ArchUnit rules are executable architecture fitness functions. Because they live 
 
 ## 🔲 Core Modules
 
-| Module | Description | Alpha status |
+| Module | Description | Current status |
 | --- | --- | --- |
-| **Files** | File, folder, naming, and dependency rules | Available |
-| **Layers** | Named layer extraction and dependency constraints | Available |
-| **Metrics** | Cohesion and count metrics | Available |
-| **Slices** | Logical architecture slicing | Available |
+| **Files** | File, folder, naming, and dependency rules | Alpha; failing tests tracked in [#45](https://github.com/LukasNiessen/ArchUnitNET/issues/45) |
+| **Layers** | Named layer extraction and dependency constraints | Alpha; failing tests tracked in [#45](https://github.com/LukasNiessen/ArchUnitNET/issues/45) |
+| **Metrics** | Cohesion and count metrics | Experimental; type-target gap tracked in [#46](https://github.com/LukasNiessen/ArchUnitNET/issues/46) |
+| **Slices** | Logical architecture slicing | Alpha; failing tests tracked in [#45](https://github.com/LukasNiessen/ArchUnitNET/issues/45) |
 | **Graph** | Dependency graph reports | Experimental |
-| **Testing** | xUnit, NUnit, MSTest, and generic assertions | Available |
-| **Reporting** | HTML, SARIF, JSON, text, and metrics reports | Experimental |
+| **Testing** | xUnit, NUnit, MSTest, and generic assertions | Alpha; failing tests tracked in [#45](https://github.com/LukasNiessen/ArchUnitNET/issues/45) |
+| **Reporting** | HTML, SARIF, JSON, text, and metrics reports | Experimental; failing tests tracked in [#45](https://github.com/LukasNiessen/ArchUnitNET/issues/45) |
 | **Common** | Extraction, projections, matching, and shared types | Internal foundation |
 
 ## 🕵️ Technical Deep Dive
@@ -457,7 +468,8 @@ Create a `ViolationBaseline`, filter known violations, and fail only when new vi
 
 **Q: Is this release stable?**
 
-No. The current package is an alpha prerelease. APIs may change, and some repository tests are still failing.
+No. The current package is an alpha prerelease. APIs may change, and the repository test failures
+are tracked in [issue #45](https://github.com/LukasNiessen/ArchUnitNET/issues/45).
 
 ## 📅 Plans
 
@@ -483,7 +495,7 @@ Found a bug or want to discuss a feature?
 
 - Submit an [issue on GitHub](https://github.com/LukasNiessen/ArchUnitNET/issues/new/choose)
 - Join the [GitHub Discussions](https://github.com/LukasNiessen/ArchUnitNET/discussions)
-- Read the [documentation](https://lukasniessen.github.io/ArchUnitNET/)
+- Read the [documentation in this repository](https://github.com/LukasNiessen/ArchUnitNET/tree/main/docs)
 
 If ArchUnit helps your project, please consider:
 
