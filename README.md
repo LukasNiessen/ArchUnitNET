@@ -1,4 +1,11 @@
-# ArchUnitSharp
+# ArchUnit.NET
+
+The canonical repository is [LukasNiessen/ArchUnitNET](https://github.com/LukasNiessen/ArchUnitNET).
+This implementation was developed by [Robey Beswick](https://github.com/RobeyBeswick) as
+ArchUnitSharp and promoted here on 5 October 2026. Its project names and C# namespaces remain
+`ArchUnitSharp` while the package and API transition is planned. The previous implementation,
+including its branches and release tags, is preserved in
+[Deprecated-ArchUnitNET](https://github.com/LukasNiessen/Deprecated-ArchUnitNET).
 
 Architecture testing for C# and .NET — a fluent, chainable rule DSL over a graph of your project's
 files and their dependencies, in the spirit of ArchUnit. A rule reads as a sentence an architect
@@ -11,12 +18,13 @@ The library analyses a project's C# source tree into a file-to-file dependency g
 that graph — that files sit where they should, that layers only depend on the layers they may, that
 slices stay free of forbidden cross-feature edges, that metrics stay under a threshold.
 
-This repository is being built from scratch, issue by issue, by the
-[ArchUnitDev](https://github.com/RobeyBeswick/ArchUnitDev) loop. The conventions it builds against are
-in [AGENTS.md](AGENTS.md).
+The implementation was built with the [ArchUnitDev](https://github.com/RobeyBeswick/ArchUnitDev)
+loop. Development conventions are in [AGENTS.md](AGENTS.md). Known correctness limitations and
+the migration work are tracked in [this repository's issues](https://github.com/LukasNiessen/ArchUnitNET/issues).
 
 The full documentation — this guide plus a searchable, source-generated API reference for every
-public module, class and method — lives on the [documentation site](https://robeybeswick.github.io/ArchUnitSharp/).
+public module, class and method — lives in [docs](docs/index.md). Publishing the canonical
+documentation site is tracked in [issue #42](https://github.com/LukasNiessen/ArchUnitNET/issues/42).
 
 ## Requirements
 
@@ -24,7 +32,8 @@ public module, class and method — lives on the [documentation site](https://ro
 
 ## Install
 
-No NuGet package is published yet; the library is used from source. Clone this repository, then add
+This promoted implementation is not yet published to NuGet; existing `ArchUnit` releases contain
+the previous implementation. Use this version from source. Clone this repository, then add
 the composition root and the assertion adapter to your test project:
 
     dotnet add tests/MyApp.Tests/MyApp.Tests.csproj reference src/ArchUnitSharp/ArchUnitSharp.csproj src/ArchUnitSharp.Testing.Xunit/ArchUnitSharp.Testing.Xunit.csproj

@@ -1,8 +1,12 @@
 ---
-title: ArchUnitSharp
+title: ArchUnit.NET
 ---
 
-# ArchUnitSharp
+# ArchUnit.NET
+
+The implementation developed by Robey Beswick as ArchUnitSharp is now maintained in
+[LukasNiessen/ArchUnitNET](https://github.com/LukasNiessen/ArchUnitNET). Project names and public
+C# namespaces currently remain `ArchUnitSharp`.
 
 Architecture testing for C# and .NET — a fluent, chainable rule DSL over a graph of your project's
 files and their dependencies, in the spirit of ArchUnit. A rule reads as a sentence an architect
@@ -42,7 +46,7 @@ rule terminal assert natively in your suite.
 
 ## Status
 
-This repository is being built from scratch, issue by issue, by the
-[ArchUnitDev](https://github.com/RobeyBeswick/ArchUnitDev) loop, and no NuGet package is published
-yet — the library is used from source. See [Getting started](guide/getting-started.md) for the
+This implementation was built with the [ArchUnitDev](https://github.com/RobeyBeswick/ArchUnitDev)
+loop and is not yet published to NuGet. Existing `ArchUnit` packages contain the previous
+implementation; use this version from source. See [Getting started](guide/getting-started.md) for the
 install steps and [Limitations](guide/limitations.md) for what is not implemented yet.

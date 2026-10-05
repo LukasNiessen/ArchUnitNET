@@ -4,7 +4,8 @@ title: Limitations
 
 # What is not implemented yet
 
-- **No NuGet package is published.** Install by referencing the projects from source, as described
+- **This implementation is not yet published to NuGet.** Existing `ArchUnit` packages contain
+  the previous implementation. Install by referencing the projects from source, as described
   in [Getting started](getting-started.md).
 - **Some predicates are positive-mood only.** `should have no cycles` (files) and `should adhere to
   diagram` (slices) have no `should not` form.
@@ -17,9 +18,9 @@ title: Limitations
 
 ## Contributing
 
-This repository is built from scratch, issue by issue, by the
-[ArchUnitDev](https://github.com/RobeyBeswick/ArchUnitDev) loop, and the issue queue is the roadmap.
-The conventions it builds against are in
-[AGENTS.md](https://github.com/RobeyBeswick/ArchUnitSharp/blob/main/AGENTS.md), and deviations from
+The implementation was built with the [ArchUnitDev](https://github.com/RobeyBeswick/ArchUnitDev)
+loop. The [canonical issue queue](https://github.com/LukasNiessen/ArchUnitNET/issues) tracks known
+correctness limitations and the roadmap. Development conventions are in
+[AGENTS.md](https://github.com/LukasNiessen/ArchUnitNET/blob/main/AGENTS.md), and deviations from
 them are recorded in
-[NOTES.md](https://github.com/RobeyBeswick/ArchUnitSharp/blob/main/NOTES.md).
+[NOTES.md](https://github.com/LukasNiessen/ArchUnitNET/blob/main/NOTES.md).

@@ -1,5 +1,14 @@
 # NOTES
 
+## Canonical repository promotion — 5 October 2026
+
+Robey Beswick's implementation is promoted to `LukasNiessen/ArchUnitNET`, displayed as
+ArchUnit.NET. The former implementation is preserved in `LukasNiessen/Deprecated-ArchUnitNET`.
+
+WHY: Project names, assembly names and public namespaces remain `ArchUnitSharp` to preserve
+the audited implementation during promotion. The canonical issue queue tracks the package/API
+transition and the outstanding correctness findings; this promotion does not claim those are fixed.
+
 ## Issue 46 — type-scoped metrics
 
 ArchUnitSharp has no `Metrics<T>()` — the issue's false-green (a `Metrics<T>()` that builds an empty

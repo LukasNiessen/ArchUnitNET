@@ -10,7 +10,8 @@ The .NET 10 SDK. Every project targets `net10.0`.
 
 ## Install
 
-No NuGet package is published yet; the library is used from source. Clone the repository, then add
+This implementation is not yet published to NuGet; existing `ArchUnit` packages contain the
+previous implementation. Clone [the canonical repository](https://github.com/LukasNiessen/ArchUnitNET), then add
 the composition root and the assertion adapter to your test project:
 
 ```

@@ -24,8 +24,8 @@
       { "files": ["**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.svg"], "exclude": ["_site/**"] }
     ],
     "globalMetadata": {
-      "_appTitle": "ArchUnitSharp",
-      "_appFooter": "ArchUnitSharp — architecture testing for C# and .NET",
+      "_appTitle": "ArchUnit.NET",
+      "_appFooter": "ArchUnit.NET — architecture testing for C# and .NET",
       "_enableSearch": true,
       "_disableContribution": true
     },
